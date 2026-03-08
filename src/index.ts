@@ -13,6 +13,7 @@ import { Logger } from "./core/logger";
 import { mappingRoutes } from "./core/mappingRoutes";
 import { proxyRoutes } from "./core/proxyRoutes";
 import { animeRoutes } from "./providers/anime/route";
+import { mangaRoutes } from "./providers/manga/route";
 import { yFlixRoutes } from "./providers/yflix/route";
 import { mangaRoutes } from "./providers/manga/route";
 import { tidalRoutes } from "./providers/tidal/route";
@@ -36,12 +37,18 @@ const app = new Elysia()
   });
 
 app.use(openapi({
-  path: '/swagger', //Todo : Snozxyx (Fix : Make this /docs and add a redirect from /docs to /swagger)
+  path: '/docs',
   documentation: {
     info: {
-      title: 'Mangaball API Documentation',
-      version: '1.0.0',
-    }
+      title: 'Cooren API',
+      version: '1.0.0'
+    },
+    tags: [
+      { name: 'anime', description: '📺 Anime Providers & Mappings' },
+      { name: 'manga', description: '📚 Manga Providers (e.g., Mangaball)' },
+      { name: 'movie', description: '🍿 Movie & TV Providers' },
+      { name: 'proxy', description: '⚡ Utilities' }
+    ]
   }
 }));
 
@@ -55,14 +62,18 @@ app
       about: "Cooren is a high-performance, scalable scraping engine designed to collect, organize, and deliver structured data from across the world of anime, movies, manga, and music, all in one unified ecosystem",
       status: "operational"
     };
+  }, {
+    detail: { 
+      tags: ['core'], 
+      summary: 'System Status & API Overview' 
+    }
   })
   .use(animeRoutes)
-  .use(yFlixRoutes)
-  .use(animeRoutes)
   .use(mangaRoutes)
+  .use(mappingRoutes)
+  .use(yFlixRoutes)
   .use(tidalRoutes)
   .use(proxyRoutes)
-  .use(mappingRoutes)
   .get("/tidal-demo", () => Bun.file("tests/tidal_demo.html"))
   .onError(({ code, error, set }: { code: string, error: Error, set: any }) => {
     if (code === 'NOT_FOUND') {

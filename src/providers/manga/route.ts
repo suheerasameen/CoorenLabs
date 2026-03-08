@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { mangaballRoutes } from "./mangaball/route";
+import { allmangaRoutes } from "./allmanga/route";
 
 export const mangaRoutes = new Elysia({ prefix: "/manga" })
   .get("/", () => {

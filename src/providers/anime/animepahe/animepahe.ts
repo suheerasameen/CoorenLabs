@@ -627,7 +627,7 @@ export class Animepahe {
       }
 
       return urlObj.toString();
-    } catch (e) {
+    } catch (_e) {
       // Fallback for simple replacement if URL object fails
       return m3u8Url
         .replace(".uwucdn.top", ".kwik.cx")

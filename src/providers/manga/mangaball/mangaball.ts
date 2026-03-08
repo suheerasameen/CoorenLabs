@@ -126,10 +126,10 @@ export class MangaballParser {
   private extractCookies(setCookieHeader: string[] | string | undefined) {
     if (!setCookieHeader) return;
     const cookiesArray = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-    
+
     for (const cookieStr of cookiesArray) {
       // Bun sometimes merges multiple set-cookie headers into one comma-separated string.
-      const individualCookies = cookieStr.split(/,(?=\s*[a-zA-Z0-9_-]+\=)/);
+      const individualCookies = cookieStr.split(/,(?=\s*[a-zA-Z0-9_-]+=)/);
       for (const c of individualCookies) {
         const match = c.match(/^([^=]+)=([^;]+)/);
         if (match) {
@@ -237,11 +237,11 @@ export class MangaballParser {
       Origin: BASE_URL,
       Referer: referer ?? `${BASE_URL}/`,
     };
-    
+
     const cookieStr = ["show18PlusContent=true", ...Object.entries(this.cookies).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)].join("; ");
 
     try {
-      const resp = await this.http.post(url, payload, { 
+      const resp = await this.http.post(url, payload, {
         headers: { ...headers, Cookie: cookieStr }
       });
       return resp.data as Record<string, unknown>;

@@ -36,7 +36,7 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
     if (headers) {
       try {
         corsHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch (err) {
+      } catch {
         return new Response("Invalid headers format", { status: 400 });
       }
     }
@@ -120,7 +120,7 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
     if (headers) {
       try {
         corsHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch (err) {
+      } catch {
         return new Response("Invalid headers format", { status: 400 });
       }
     }
@@ -173,7 +173,7 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
     if (headers) {
       try {
         corsHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch (err) {
+      } catch {
         return new Response("Invalid headers format", { status: 400 });
       }
     }
@@ -233,7 +233,7 @@ export const proxyRoutes = new Elysia({ prefix: "/proxy" })
     if (headers) {
       try {
         customHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch (e) {
+      } catch (_e) {
         console.error("Fetch header parse failed");
       }
     }

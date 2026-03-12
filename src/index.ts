@@ -17,6 +17,7 @@ import { mangaRoutes } from "./providers/manga/route";
 import { primesrcRoutes } from "./providers/primesrc/route";
 import { tidalRoutes } from "./providers/tidal/route";
 import { yFlixRoutes } from "./providers/yflix/route";
+import { toonstreamRoutes } from "./providers/anime/toonstream/route";
 
 validateConfig();
 
@@ -75,6 +76,7 @@ app
   .use(tidalRoutes)
   .use(proxyRoutes)
   .use(mappingRoutes)
+  .use(toonstreamRoutes)
 
 
 app.listen(PORT);

@@ -6,7 +6,7 @@ export type Source = {
     sizeBytes?: number
     poster?: string;
     thumbnail?: string,
-    headers: Record<string, string>
+    headers?: Record<string, string>
 }
 
 export type Caption = {

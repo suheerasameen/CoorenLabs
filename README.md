@@ -1,225 +1,118 @@
-# 🚀 Cooren API
+# Cooren API
 
-**Cooren is an open-source, high-performance, and scalable scraping engine designed to collect, organize, and deliver structured data from across the world of anime, movies, manga, and music — all in one unified ecosystem.**
+[![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh)
+[![ElysiaJS](https://img.shields.io/badge/ElysiaJS-%23FEEB00.svg?style=for-the-badge&logo=elysiajs&logoColor=black)](https://elysiajs.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](LICENSE)
 
-Developed and maintained by **[CoorenLabs](https://coorenlabs.com)**.
+Cooren is an open-source, high-performance, and scalable scraping engine designed to collect, organize, and deliver structured data from across the world of anime, movies, manga, and music.
 
----
-
-## 🔗 Quick Links
-
-* 🌐 **Main Website:** https://coorenlabs.com
-* 📘 **Official Documentation:** https://docs.coorenlabs.com
+Developed and maintained by [CoorenLabs](https://coorenlabs.com).
 
 ---
 
-## ✨ Features
+## Quick Links
 
-* 🌍 **Unified Media Ecosystem**
-
-  * ⛩️ Anime Providers & Mappings
-  * 📖 Manga Providers (e.g., Mangaball, Atsu)
-  * 🍿 Movie & TV Providers
-  * 🎵 Music Providers
-  * ⚡ Direct Stream Providers
-
-* 🧩 **Open Source**
-  Fully open-source and community-driven.
-
-* ⚡ **High Performance**
-  Powered by **Bun** and **ElysiaJS** for blazing-fast execution.
-
-* 🧠 **Advanced Scraping**
-  Uses Cheerio, Puppeteer, and Axios for handling static + dynamic content.
-
-* 📄 **Built-in Swagger UI**
-  Auto-generated OpenAPI documentation.
-
-* 👨‍💻 **Developer Friendly**
-
-  * TypeScript support
-  * ESLint configured
-  * Modular provider architecture
+- [Website](https://coorenlabs.com)
+- [Documentation](https://docs.coorenlabs.com)
+- [GitHub](https://github.com/CoorenLabs/CoorenLabs)
 
 ---
 
-## 🛠️ Tech Stack
+## Features
 
-* ⚙️ **Runtime:** Bun
-* 🚀 **Framework:** ElysiaJS
-* 💻 **Language:** TypeScript
-* 🔍 **Scraping:** Cheerio, Puppeteer
-* 🗄️ **Database/Cache:** Upstash Redis
-* ✅ **Validation:** Zod
-
----
-
-## 🚦 Getting Started
-
-### 📦 Prerequisites
-
-Make sure you have **Bun** installed:
-
-👉 https://bun.sh
+- **Unified Media Ecosystem**: Anime, Manga, Movies, TV, and Music.
+- **Open Source**: Fully community-driven.
+- **High Performance**: Powered by Bun and ElysiaJS.
+- **Advanced Scraping**: Cheerio, Puppeteer, and Axios.
+- **Developer Friendly**: TypeScript and modular architecture.
 
 ---
 
-### 📥 Installation
+## Tech Stack
 
-Clone the repository and install dependencies:
+- **Runtime**: Bun
+- **Framework**: ElysiaJS
+- **Language**: TypeScript
+- **Scraping**: Cheerio, Puppeteer
+- **Database/Cache**: Upstash Redis
+- **Validation**: Zod
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Install [Bun](https://bun.sh).
+
+### Installation
 
 ```bash
-git clone https://github.com/your-username/cooren-api.git
-cd cooren-api
+git clone https://github.com/CoorenLabs/CoorenLabs.git
+cd CoorenLabs
 bun install
 ```
 
----
-
-### ▶️ Running the Server
-
-Start development server:
+### Running the Server
 
 ```bash
-bun run dev
+bun run dev      # or bun run hot
 ```
 
-With hot reload:
+### Build for Production
 
 ```bash
-bun run hot
+bun run build:bun   # Optimized for Bun
+bun run build:node  # Compile to Node
 ```
 
 ---
 
-### 🏗️ Build for Production
-
-```bash
-bun run build:bun   # Optimized build for Bun
-bun run build:node  # Compile using TypeScript
-```
-
----
-
-## 📚 API Documentation
-
-* 🌐 Online Docs: https://docs.coorenlabs.com
-* 🖥️ Local Docs:
-
-  ```
-  http://localhost:<PORT>/docs
-  ```
-
----
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 src/
-├── core/
-│   ├── config.ts
-│   ├── logger.ts
-│   ├── proxyRoutes.ts
-│   └── mappingRoutes.ts
-│
-├── providers/
-│   └── (individual providers)
+├── core/         # Config, logger, routes
+├── providers/    # Individual media providers
 ```
 
 ---
 
-## 🧩 Creating a New Provider
-
-Each provider should follow this structure:
+## Creating a New Provider
 
 ```
-src/providers/<provider-name>/
+src/providers/<name>/
 ├── route.ts
-├── <provider-name>.ts
+├── <name>.ts
 └── types.ts
 ```
 
----
-
-### 📌 Example: route.ts
+### Example: route.ts
 
 ```ts
 import Elysia from "elysia";
 import { FlixHQ } from "./flixhq";
 
 export const flixhqRoutes = new Elysia({ prefix: "/flixhq" })
-  .get("/home", async () => {
-    return await FlixHQ.home();
-  })
-  .get("/search/:query", async ({ params: { query } }) => {
-    return await FlixHQ.search(query);
-  });
+  .get("/home", async () => await FlixHQ.home())
+  .get("/search/:query", async ({ params: { query } }) => await FlixHQ.search(query));
 ```
 
 ---
 
-### 📌 Example: Provider Logic
-
-```ts
-export class FlixHQ {
-  static async home() {
-    // scraping logic
-    return data;
-  }
-
-  static async search(query: string) {
-    // search logic
-    return data;
-  }
-}
-```
-
----
-
-### 📌 Example: types.ts
-
-```ts
-export interface FlixHQResponse {
-  title: string;
-  url: string;
-}
-```
-
----
-
-## 🧪 Testing & Linting
-
-Run tests:
+## Testing & Linting
 
 ```bash
 bun run test
-```
-
-Lint your code:
-
-```bash
 bun run lint
 bun run lint:fix
 ```
 
 ---
 
-## 🤝 Contributing
+## License
 
-Contributions are welcome!
-Feel free to fork the repo, create a branch, and submit a PR.
-
----
-
-## 📄 License
-
-This project is open-source and available under the **GPL-3.0 license**.
-
----
-
-## 💡 Maintained By
-
-**CoorenLabs**
-🌐 https://coorenlabs.com
+This project is licensed under the [GPL-3.0 License](LICENSE).
 
 ---

@@ -7,24 +7,21 @@ import { ScrapeMovieInfo, ScrapeMovies, ScrapeMovieSources } from "./scrapers/mo
 import { ScrapeSearch } from "./scrapers/search";
 import { ScrapeEpisodeSources, ScrapeSeries, ScrapeSeriesInfo } from "./scrapers/series";
 
-const HOME_CACHE_TTL = 43_200 // 12hr
-const SEARCH_CACHE_TTL = 43_200 // 12hr
+const HOME_CACHE_TTL = 43_200; // 12hr
+const SEARCH_CACHE_TTL = 43_200; // 12hr
 
-const MOVIES_PAGE_CACHE_TTL = 3600 * 24 * 30 // 30 days
-const SERIES_PAGE_CACHE_TTL = 3600 * 24 * 30  // 30 days
+const MOVIES_PAGE_CACHE_TTL = 3600 * 24 * 30; // 30 days
+const SERIES_PAGE_CACHE_TTL = 3600 * 24 * 30; // 30 days
 
-const MOVIE_INFO_CACHE_TTL = 3600 * 24 * 14 // 14 days
-const SERIES_INFO_CACHE_TTL = 3600 * 24 * 3 // 3 days
-
-
-
+const MOVIE_INFO_CACHE_TTL = 3600 * 24 * 14; // 14 days
+const SERIES_INFO_CACHE_TTL = 3600 * 24 * 3; // 3 days
 
 import { env } from "../../../core/runtime";
 
 export const SERVER_ORIGIN = env.SERVER_ORIGIN || "";
 export const PROXIFY = Boolean(env.PROXIFY) || false;
 
-if (!SERVER_ORIGIN) throw new Error("set SERVER_ORIGIN at .env!");
+if (!SERVER_ORIGIN && env.NODE_ENV !== "test") throw new Error("set SERVER_ORIGIN at .env!");
 
 console.log("auto source proxy is ", PROXIFY);
 
@@ -34,16 +31,15 @@ const ALLOWED_ORIGINS: string[] | "*" = envOrigins
   ? envOrigins.split(",").map((o: string) => o.trim().replace(/\/$/, ""))
   : "*";
 
-
-
 // for proxy safety
-const MAX_M3U8_SIZE = 5 * 1024 * 1024;       // 5 MB
-const MAX_TS_SIZE = 50 * 1024 * 1024;        // 50 MB
-const MAX_FETCH_SIZE = 50 * 1024 * 1024;     // 50 MB
+const MAX_M3U8_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_TS_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_FETCH_SIZE = 50 * 1024 * 1024; // 50 MB
 const MAX_MP4_SIZE = 20 * 1024 * 1024 * 1024; // 20 GB
 
 // const PLAYLIST_REGEX = /\.m3u|playlist|\.txt/i
-const PLAYLIST_REGEX = /\.m3u|playlist|\.txt|^(?!.*\.(?:js|css|gif|jpg|png|svg|woff|woff2|ttf|ts|mp4|m4s|aac|key|vtt)(?:[?#].*)?$).*$/i;
+const PLAYLIST_REGEX =
+  /\.m3u|playlist|\.txt|^(?!.*\.(?:js|css|gif|jpg|png|svg|woff|woff2|ttf|ts|mp4|m4s|aac|key|vtt)(?:[?#].*)?$).*$/i;
 
 const prefix = "/anime/toonstream";
 
@@ -69,7 +65,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         prefix + "/fetch?url={url}&headers={encodedHeaders}",
         prefix + "/mp4-proxy?url={url}&headers=",
       ],
-      msg: "use these proxy routes for some toonstream source to work."
+      msg: "use these proxy routes for some toonstream source to work.",
     };
   })
   .get("/home", async () => {
@@ -81,7 +77,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         success: true,
         served_cache: true,
         took_ms: (performance.now() - then).toFixed(2),
-        data: JSON.parse(cachedHomeData)
+        data: JSON.parse(cachedHomeData),
       };
 
     const data = await ScrapeHomePage();
@@ -105,7 +101,8 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
       };
   })
 
-  .get("/search/:query/:page?",
+  .get(
+    "/search/:query/:page?",
     async ({ params: { query, page } }) => {
       const then = performance.now();
 
@@ -116,7 +113,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
           success: true,
           served_cache: true,
           took_ms: (performance.now() - then).toFixed(2),
-          data: JSON.parse(cachedSearchData)
+          data: JSON.parse(cachedSearchData),
         };
 
       const data = await ScrapeSearch(query, +page);
@@ -144,10 +141,11 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         query: t.String(),
         page: t.Optional(t.Number({ default: 1 })),
       }),
-    }
+    },
   )
 
-  .get("/movies/:page?",
+  .get(
+    "/movies/:page?",
     async ({ params: { page } }) => {
       const then = performance.now();
       const key = `movies:${page || 1}`;
@@ -159,7 +157,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
           served_cache: true,
           page: page || 1,
           took_ms: (performance.now() - then).toFixed(2),
-          data: JSON.parse(cachedMoviesData)
+          data: JSON.parse(cachedMoviesData),
         };
 
       const data = await ScrapeMovies(+page);
@@ -176,8 +174,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
           page: page || 1,
           data: data,
         };
-      }
-      else
+      } else
         return {
           success: false,
           took_ms: (performance.now() - then).toFixed(2),
@@ -189,10 +186,9 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
       params: t.Object({
         page: t.Optional(t.Number({ default: 1 })),
       }),
-    }
+    },
   )
   .get("/movies/info/:slug", async ({ params: { slug } }) => {
-
     const then = performance.now();
     const key = `movie:info:${slug}`;
     const cachedMovieData = await Cache.get(key);
@@ -202,7 +198,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         success: true,
         served_cache: true,
         took_ms: (performance.now() - then).toFixed(2),
-        data: JSON.parse(cachedMovieData)
+        data: JSON.parse(cachedMovieData),
       };
 
     const data = await ScrapeMovieInfo(slug);
@@ -216,9 +212,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         took_ms: (performance.now() - then).toFixed(2),
         data: data,
       };
-    }
-
-    else
+    } else
       return {
         success: false,
         took_ms: (performance.now() - then).toFixed(2),
@@ -244,7 +238,8 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
       };
   })
 
-  .get("/series/:page?",
+  .get(
+    "/series/:page?",
     async ({ params: { page } }) => {
       const then = performance.now();
       const key = `series:${page}`;
@@ -257,7 +252,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
           served_cache: true,
           page: page || 1,
           took_ms: (performance.now() - then).toFixed(2),
-          data: JSON.parse(cachedData)
+          data: JSON.parse(cachedData),
         };
 
       const data = await ScrapeSeries(+page);
@@ -274,8 +269,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
           page: page || 1,
           data: data,
         };
-      }
-      else
+      } else
         return {
           success: false,
           took_ms: (performance.now() - then).toFixed(2),
@@ -287,7 +281,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
       params: t.Object({
         page: t.Optional(t.Number({ default: 1 })),
       }),
-    }
+    },
   )
   .get("/series/info/:slug", async ({ params: { slug } }) => {
     const then = performance.now();
@@ -300,7 +294,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         success: true,
         served_cache: true,
         took_ms: (performance.now() - then).toFixed(2),
-        data: JSON.parse(cachedData)
+        data: JSON.parse(cachedData),
       };
 
     const data = await ScrapeSeriesInfo(slug);
@@ -314,8 +308,7 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
         took_ms: (performance.now() - then).toFixed(2),
         data: data,
       };
-    }
-    else
+    } else
       return {
         success: false,
         took_ms: (performance.now() - then).toFixed(2),
@@ -336,245 +329,260 @@ export const toonstreamRoutes = new Elysia({ prefix: "/toonstream" })
       };
   })
 
+  .get(
+    "/m3u8-proxy",
+    async ({ request, query: { url, headers } }) => {
+      let corsHeaders: Record<string, string> = {};
 
-  .get("/m3u8-proxy", async ({ request, query: { url, headers } }) => {
-    let corsHeaders: Record<string, string> = {};
+      if (headers) {
+        try {
+          corsHeaders = JSON.parse(decodeURIComponent(headers));
+        } catch {
+          return new Response("Invalid headers format", { status: 400 });
+        }
+      }
 
-    if (headers) {
+      corsHeaders["Connection"] = "keep-alive";
+
       try {
-        corsHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch {
-        return new Response("Invalid headers format", { status: 400 });
-      }
-    }
+        const res = await fetch(url, {
+          headers: corsHeaders,
+          signal: request.signal, // Abort if client disconnects
+        });
 
-    corsHeaders["Connection"] = "keep-alive";
+        if (!res.ok) {
+          console.log("Fetch failed with status:", res.status, "Url:", url);
+          return new Response(res.body, { status: res.status });
+        }
 
-    try {
-      const res = await fetch(url, {
-        headers: corsHeaders,
-        signal: request.signal // Abort if client disconnects
-      });
+        // Size limit check
+        if (isTooLarge(res.headers.get("content-length"), MAX_M3U8_SIZE)) {
+          return new Response("File too large", { status: 413 });
+        }
 
-      if (!res.ok) {
-        console.log("Fetch failed with status:", res.status, "Url:", url)
-        return new Response(res.body, { status: res.status });
-      }
+        const text = await res.text();
+        const encodedHeaders = encodeURIComponent(headers || "");
 
-      // Size limit check
-      if (isTooLarge(res.headers.get("content-length"), MAX_M3U8_SIZE)) {
-        return new Response("File too large", { status: 413 });
-      }
+        const proxifiedM3u8 = text
+          .split("\n")
+          .map((line) => {
+            const tl = line.trim();
+            if (!tl) return line;
 
-      const text = await res.text();
-      const encodedHeaders = encodeURIComponent(headers || "");
+            if (tl.startsWith("#EXT")) {
+              return tl.replace(/URI="([^"]+)"/g, (_, uri) => {
+                const absoluteUrl = new URL(uri, url).href;
+                let proxiedUrl;
+                const encodedUrl = encodeURIComponent(absoluteUrl);
 
-      const proxifiedM3u8 = text.split("\n").map(line => {
-        const tl = line.trim();
-        if (!tl) return line;
+                if (PLAYLIST_REGEX.test(absoluteUrl)) {
+                  proxiedUrl = `${SERVER_ORIGIN}${prefix}/m3u8-proxy?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
+                } else {
+                  proxiedUrl = `${SERVER_ORIGIN}${prefix}/fetch?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
+                }
 
-        if (tl.startsWith("#EXT")) {
-          return tl.replace(/URI="([^"]+)"/g, (_, uri) => {
-            const absoluteUrl = new URL(uri, url).href;
-            let proxiedUrl;
+                return `URI="${proxiedUrl}"`;
+              });
+            }
+
+            const absoluteUrl = new URL(tl, url).href;
             const encodedUrl = encodeURIComponent(absoluteUrl);
 
             if (PLAYLIST_REGEX.test(absoluteUrl)) {
-              proxiedUrl = `${SERVER_ORIGIN}${prefix}/m3u8-proxy?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
+              return `${SERVER_ORIGIN}${prefix}/m3u8-proxy?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
             } else {
-              proxiedUrl = `${SERVER_ORIGIN}${prefix}/fetch?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
+              return `${SERVER_ORIGIN}${prefix}/ts-segment?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
             }
-
-            return `URI="${proxiedUrl}"`;
           })
+          .join("\n");
+
+        return new Response(proxifiedM3u8, {
+          headers: {
+            "Content-Type": res.headers.get("Content-Type") || "application/vnd.apple.mpegurl",
+          },
+        });
+      } catch (err: any) {
+        if (err.name === "AbortError") return new Response("Client disconnected", { status: 499 });
+        Logger.error(err);
+        return new Response("Internal Server Error", { status: 500 });
+      }
+    },
+    {
+      query: t.Object({
+        url: t.String(),
+        headers: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["proxy"],
+        summary: "M3U8 Playlist Proxy",
+      },
+    },
+  )
+
+  .get(
+    "/ts-segment",
+    async ({ request, query: { url, headers } }) => {
+      let corsHeaders: Record<string, string> = {};
+
+      if (headers) {
+        try {
+          corsHeaders = JSON.parse(decodeURIComponent(headers));
+        } catch {
+          return new Response("Invalid headers format", { status: 400 });
         }
+      }
 
-        const absoluteUrl = new URL(tl, url).href;
-        const encodedUrl = encodeURIComponent(absoluteUrl);
+      // Force keep-alive for the upstream connection
+      corsHeaders["Connection"] = "keep-alive";
 
-        if (PLAYLIST_REGEX.test(absoluteUrl)) {
-          return `${SERVER_ORIGIN}${prefix}/m3u8-proxy?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
-        } else {
-          return `${SERVER_ORIGIN}${prefix}/ts-segment?url=${encodedUrl}${headers ? `&headers=${encodedHeaders}` : ""}`;
-        }
-      }).join("\n");
-
-      return new Response(proxifiedM3u8, {
-        headers: {
-          "Content-Type": res.headers.get("Content-Type") || "application/vnd.apple.mpegurl",
-        }
-      });
-
-    } catch (err: any) {
-      if (err.name === 'AbortError') return new Response("Client disconnected", { status: 499 });
-      Logger.error(err);
-      return new Response("Internal Server Error", { status: 500 });
-    }
-  }, {
-    query: t.Object({
-      url: t.String(),
-      headers: t.Optional(t.String())
-    }),
-    detail: {
-      tags: ['proxy'],
-      summary: 'M3U8 Playlist Proxy'
-    }
-  })
-
-  .get("/ts-segment", async ({ request, query: { url, headers } }) => {
-    let corsHeaders: Record<string, string> = {};
-
-    if (headers) {
       try {
-        corsHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch {
-        return new Response("Invalid headers format", { status: 400 });
-      }
-    }
+        const res = await fetch(url, {
+          headers: corsHeaders,
+          signal: request.signal, // Abort if client disconnects
+        });
 
-    // Force keep-alive for the upstream connection
-    corsHeaders["Connection"] = "keep-alive";
-
-    try {
-      const res = await fetch(url, {
-        headers: corsHeaders,
-        signal: request.signal // Abort if client disconnects
-      });
-
-      if (!res.ok) {
-        console.error("TS segment Fetch failed:", res.status, url);
-        return new Response(res.body, { status: res.status });
-      }
-
-      // Size limit check
-      if (isTooLarge(res.headers.get("content-length"), MAX_TS_SIZE)) {
-        return new Response("Segment too large", { status: 413 });
-      }
-
-      return new Response(res.body, {
-        headers: {
-          "Content-Type": res.headers.get("Content-Type") || "video/MP2T",
-          "Cache-Control": "public, max-age=86400"
+        if (!res.ok) {
+          console.error("TS segment Fetch failed:", res.status, url);
+          return new Response(res.body, { status: res.status });
         }
-      });
 
-    } catch (err: any) {
-      if (err.name === 'AbortError') return new Response("Client disconnected", { status: 499 });
-      Logger.error(err);
-      return new Response("Internal Server Error", { status: 500 });
-    }
-  }, {
-    query: t.Object({
-      url: t.String(),
-      headers: t.Optional(t.String())
-    }),
-    detail: {
-      tags: ['proxy'],
-      summary: 'TS Segment Proxy'
-    }
-  })
+        // Size limit check
+        if (isTooLarge(res.headers.get("content-length"), MAX_TS_SIZE)) {
+          return new Response("Segment too large", { status: 413 });
+        }
 
-  .get("/mp4-proxy", async ({ request, query: { url, headers } }) => {
-    let corsHeaders: Record<string, string> = {};
+        return new Response(res.body, {
+          headers: {
+            "Content-Type": res.headers.get("Content-Type") || "video/MP2T",
+            "Cache-Control": "public, max-age=86400",
+          },
+        });
+      } catch (err: any) {
+        if (err.name === "AbortError") return new Response("Client disconnected", { status: 499 });
+        Logger.error(err);
+        return new Response("Internal Server Error", { status: 500 });
+      }
+    },
+    {
+      query: t.Object({
+        url: t.String(),
+        headers: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["proxy"],
+        summary: "TS Segment Proxy",
+      },
+    },
+  )
 
-    if (headers) {
+  .get(
+    "/mp4-proxy",
+    async ({ request, query: { url, headers } }) => {
+      let corsHeaders: Record<string, string> = {};
+
+      if (headers) {
+        try {
+          corsHeaders = JSON.parse(decodeURIComponent(headers));
+        } catch {
+          return new Response("Invalid headers format", { status: 400 });
+        }
+      }
+
+      const clientRange = request.headers.get("range");
+
+      if (clientRange) {
+        corsHeaders["Range"] = clientRange;
+      }
+
+      corsHeaders["Connection"] = "keep-alive";
+
       try {
-        corsHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch {
-        return new Response("Invalid headers format", { status: 400 });
-      }
-    }
+        const res = await fetch(url, {
+          headers: corsHeaders,
+          signal: request.signal, // Abort if client disconnects
+        });
 
-    const clientRange = request.headers.get("range");
-
-    if (clientRange) {
-      corsHeaders["Range"] = clientRange;
-    }
-
-    corsHeaders["Connection"] = "keep-alive";
-
-    try {
-      const res = await fetch(url, {
-        headers: corsHeaders,
-        signal: request.signal // Abort if client disconnects
-      });
-
-      if (!res.ok) {
-        console.error("[MP4] Fetch failed:", res.status, url);
-        return new Response(await res.text(), { status: res.status });
-      }
-
-      // Size limit check
-      if (isTooLarge(res.headers.get("content-length"), MAX_MP4_SIZE)) {
-        return new Response("Video too large", { status: 413 });
-      }
-
-      return new Response(res.body, {
-        status: res.status,
-        headers: {
-          "content-type": res.headers.get('content-type') || "video/mp4",
-          "content-range": res.headers.get("content-range") || "",
-          "content-length": res.headers.get('content-length') || "",
-          "accept-ranges": "bytes",
+        if (!res.ok) {
+          console.error("[MP4] Fetch failed:", res.status, url);
+          return new Response(await res.text(), { status: res.status });
         }
-      })
 
-    } catch (err: any) {
-      if (err.name === 'AbortError') return new Response("Client disconnected", { status: 499 });
-      console.error("[MP4] Proxy Error:", err);
-      return new Response("Internal Server Error", { status: 500 });
-    }
-  }, {
-    query: t.Object({
-      url: t.String(),
-      headers: t.Optional(t.String()),
-    }),
-    detail: {
-      tags: ['proxy'],
-      summary: 'MP4 Video Proxy'
-    }
-  })
+        // Size limit check
+        if (isTooLarge(res.headers.get("content-length"), MAX_MP4_SIZE)) {
+          return new Response("Video too large", { status: 413 });
+        }
 
-  .get("/fetch", async ({ request, query: { url, headers } }) => {
-    let customHeaders: Record<string, string> = {};
-    if (headers) {
+        return new Response(res.body, {
+          status: res.status,
+          headers: {
+            "content-type": res.headers.get("content-type") || "video/mp4",
+            "content-range": res.headers.get("content-range") || "",
+            "content-length": res.headers.get("content-length") || "",
+            "accept-ranges": "bytes",
+          },
+        });
+      } catch (err: any) {
+        if (err.name === "AbortError") return new Response("Client disconnected", { status: 499 });
+        console.error("[MP4] Proxy Error:", err);
+        return new Response("Internal Server Error", { status: 500 });
+      }
+    },
+    {
+      query: t.Object({
+        url: t.String(),
+        headers: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["proxy"],
+        summary: "MP4 Video Proxy",
+      },
+    },
+  )
+
+  .get(
+    "/fetch",
+    async ({ request, query: { url, headers } }) => {
+      let customHeaders: Record<string, string> = {};
+      if (headers) {
+        try {
+          customHeaders = JSON.parse(decodeURIComponent(headers));
+        } catch (_e) {
+          console.error("Fetch header parse failed");
+        }
+      }
+
+      customHeaders["Connection"] = "keep-alive";
+
       try {
-        customHeaders = JSON.parse(decodeURIComponent(headers));
-      } catch (_e) {
-        console.error("Fetch header parse failed");
-      }
-    }
+        const res = await fetch(url, {
+          headers: customHeaders,
+          signal: request.signal, // Abort if client disconnects
+        });
 
-    customHeaders["Connection"] = "keep-alive";
-
-    try {
-      const res = await fetch(url, {
-        headers: customHeaders,
-        signal: request.signal // Abort if client disconnects
-      });
-
-      // Size limit check
-      if (isTooLarge(res.headers.get("content-length"), MAX_FETCH_SIZE)) {
-        return new Response("Payload too large", { status: 413 });
-      }
-
-      return new Response(res.body, {
-        status: res.status,
-        headers: {
-          "content-type": res.headers.get("content-type") || "application/octet-stream",
+        // Size limit check
+        if (isTooLarge(res.headers.get("content-length"), MAX_FETCH_SIZE)) {
+          return new Response("Payload too large", { status: 413 });
         }
-      });
-    } catch (err: any) {
-      if (err.name === 'AbortError') return new Response("Client disconnected", { status: 499 });
-      return new Response("Fetch Error", { status: 500 });
-    }
-  }, {
-    query: t.Object({
-      url: t.String(),
-      headers: t.Optional(t.String())
-    }),
-    detail: {
-      tags: ['proxy'],
-      summary: 'General Media Fetch Proxy'
-    }
-  })
+
+        return new Response(res.body, {
+          status: res.status,
+          headers: {
+            "content-type": res.headers.get("content-type") || "application/octet-stream",
+          },
+        });
+      } catch (err: any) {
+        if (err.name === "AbortError") return new Response("Client disconnected", { status: 499 });
+        return new Response("Fetch Error", { status: 500 });
+      }
+    },
+    {
+      query: t.Object({
+        url: t.String(),
+        headers: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ["proxy"],
+        summary: "General Media Fetch Proxy",
+      },
+    },
+  );

@@ -35,7 +35,9 @@ export class AnimeKai {
 
   // ─── Paginated Card Scraper ──────────────────────────────────────────────────
 
-  private static async scrapeCardPage(url: string): Promise<AnimeKaiPagedResult<AnimeKaiSearchItem>> {
+  private static async scrapeCardPage(
+    url: string,
+  ): Promise<AnimeKaiPagedResult<AnimeKaiSearchItem>> {
     try {
       const res = await fetch(url, { headers: this.headers() });
       const html = await res.text();
@@ -87,7 +89,7 @@ export class AnimeKai {
         totalPages: results.length === 0 ? 0 : totalPages,
         results,
       };
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai scrapeCardPage error for ${url}: ${String(err)}`);
       return { currentPage: 0, hasNextPage: false, totalPages: 0, results: [] };
     }
@@ -95,10 +97,13 @@ export class AnimeKai {
 
   // ─── Browsing Endpoints ──────────────────────────────────────────────────────
 
-  static async search(query: string, page: number = 1): Promise<AnimeKaiPagedResult<AnimeKaiSearchItem>> {
+  static async search(
+    query: string,
+    page: number = 1,
+  ): Promise<AnimeKaiPagedResult<AnimeKaiSearchItem>> {
     if (page <= 0) page = 1;
     return this.scrapeCardPage(
-      `${this.baseUrl}/browser?keyword=${encodeURIComponent(query.replace(/[\W_]+/g, "+"))}&page=${page}`
+      `${this.baseUrl}/browser?keyword=${encodeURIComponent(query.replace(/[\W_]+/g, "+"))}&page=${page}`,
     );
   }
 
@@ -151,7 +156,10 @@ export class AnimeKai {
     return this.scrapeCardPage(`${this.baseUrl}/special?page=${page}`);
   }
 
-  static async genreSearch(genre: string, page: number = 1): Promise<AnimeKaiPagedResult<AnimeKaiSearchItem>> {
+  static async genreSearch(
+    genre: string,
+    page: number = 1,
+  ): Promise<AnimeKaiPagedResult<AnimeKaiSearchItem>> {
     if (!genre) throw new Error("genre is required");
     if (page <= 0) page = 1;
     return this.scrapeCardPage(`${this.baseUrl}/genres/${genre}?page=${page}`);
@@ -165,11 +173,13 @@ export class AnimeKai {
       const html = await res.text();
       const $ = cheerio.load(html);
       const results: string[] = [];
-      $("#menu").find("ul.c4 li a").each((_, ele) => {
-        results.push($(ele).text().trim().toLowerCase());
-      });
+      $("#menu")
+        .find("ul.c4 li a")
+        .each((_, ele) => {
+          results.push($(ele).text().trim().toLowerCase());
+        });
       return results;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai genres error: ${String(err)}`);
       return [];
     }
@@ -201,7 +211,7 @@ export class AnimeKai {
         });
       });
       return results;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai schedule error: ${String(err)}`);
       return [];
     }
@@ -253,7 +263,7 @@ export class AnimeKai {
         });
       });
       return results;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai spotlight error: ${String(err)}`);
       return [];
     }
@@ -288,7 +298,7 @@ export class AnimeKai {
         });
       });
       return results;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai suggestions error: ${String(err)}`);
       return [];
     }
@@ -311,11 +321,7 @@ export class AnimeKai {
         japaneseTitle: $(".entity-scroll > .title").attr("data-jp")?.trim(),
         image: $("div.poster > div > img").attr("src"),
         description: $(".entity-scroll > .desc").text().trim(),
-        type: $(".entity-scroll > .info")
-          .children()
-          .last()
-          .text()
-          .toUpperCase(),
+        type: $(".entity-scroll > .info").children().last().text().toUpperCase(),
         url: `${this.baseUrl}/watch/${animeSlug}`,
       };
 
@@ -437,7 +443,7 @@ export class AnimeKai {
             "X-Requested-With": "XMLHttpRequest",
             Referer: `${this.baseUrl}/watch/${animeSlug}`,
           },
-        }
+        },
       );
       const epData = await episodesRes.json();
       const epHtml = epData.result;
@@ -468,7 +474,7 @@ export class AnimeKai {
       }
 
       return info;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai info error: ${String(err)}`);
       return null;
     }
@@ -478,7 +484,7 @@ export class AnimeKai {
 
   static async fetchEpisodeServers(
     episodeId: string,
-    subOrDub: "softsub" | "dub" = "softsub"
+    subOrDub: "softsub" | "dub" = "softsub",
   ): Promise<AnimeKaiServer[]> {
     try {
       const token = episodeId.split("$token=")[1];
@@ -503,10 +509,9 @@ export class AnimeKai {
           if (!lid) return;
 
           const viewToken = await MegaUp.generateToken(lid);
-          const viewRes = await fetch(
-            `${this.baseUrl}/ajax/links/view?id=${lid}&_=${viewToken}`,
-            { headers: this.headers() }
-          );
+          const viewRes = await fetch(`${this.baseUrl}/ajax/links/view?id=${lid}&_=${viewToken}`, {
+            headers: this.headers(),
+          });
           const viewData = await viewRes.json();
           const decoded = await MegaUp.decodeIframeData(viewData.result);
 
@@ -522,11 +527,11 @@ export class AnimeKai {
               end: decoded.skip.outro[1],
             },
           });
-        })
+        }),
       );
 
       return servers;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai fetchEpisodeServers error: ${String(err)}`);
       return [];
     }
@@ -537,7 +542,7 @@ export class AnimeKai {
   static async streams(
     animeId: string,
     episodeId: string,
-    subOrDub: "softsub" | "dub" = "softsub"
+    subOrDub: "softsub" | "dub" = "softsub",
   ): Promise<any[]> {
     try {
       const token = episodeId.split("$token=")[1];
@@ -589,7 +594,7 @@ export class AnimeKai {
       }
 
       return results;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai streams error: ${String(err)}`);
       return [];
     }
@@ -604,23 +609,22 @@ export class AnimeKai {
     return null; // Removing AniZip means we can't easily resolve by external ID without a search title
   }
 
-  static async getEpisodeSession(
-    animeId: string,
-    episodeNumber: number
-  ): Promise<string | null> {
+  static async getEpisodeSession(animeId: string, episodeNumber: number): Promise<string | null> {
     try {
       const info = await this.info(animeId);
       if (!info) return null;
 
       const episode = info.episodes.find((ep: AnimeKaiEpisode) => ep.number === episodeNumber);
       return episode ? episode.id : null;
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai getEpisodeSession error: ${String(err)}`);
       return null;
     }
   }
 
-  static async getMappingsAndName(id: string): Promise<{ mappings: any | null; name: string } | null> {
+  static async getMappingsAndName(
+    id: string,
+  ): Promise<{ mappings: any | null; name: string } | null> {
     try {
       const info = await this.info(id);
       if (!info) return null;
@@ -628,25 +632,28 @@ export class AnimeKai {
       const malId = info.malId ? parseInt(info.malId) : null;
       const anilistId = info.anilistId ? parseInt(info.anilistId) : null;
 
-      const mappings = (malId || anilistId) ? {
-          mal_id: malId,
-          anilist_id: anilistId,
-          themoviedb_id: null,
-          imdb_id: null,
-          thetvdb_id: null,
-          kitsu_id: null,
-          anidb_id: null,
-          anisearch_id: null,
-          livechart_id: null,
-          animeplanet_id: null,
-          notifymoe_id: null,
-      } : null;
+      const mappings =
+        malId || anilistId
+          ? {
+              mal_id: malId,
+              anilist_id: anilistId,
+              themoviedb_id: null,
+              imdb_id: null,
+              thetvdb_id: null,
+              kitsu_id: null,
+              anidb_id: null,
+              anisearch_id: null,
+              livechart_id: null,
+              animeplanet_id: null,
+              notifymoe_id: null,
+            }
+          : null;
 
       return {
         mappings,
         name: info.title,
       };
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`AnimeKai getMappingsAndName error: ${String(err)}`);
       return null;
     }

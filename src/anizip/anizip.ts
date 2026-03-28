@@ -1,8 +1,5 @@
 import { Logger } from "../core/logger";
-import {
-  aniZipResponseSchema,
-  mappingsSchema,
-} from "./types";
+import { aniZipResponseSchema, mappingsSchema } from "./types";
 import type { AniZipEpisode, AniZipResponse, ExternalMappings } from "./types";
 
 const ANI_ZIP_BASE = "https://api.ani.zip";
@@ -20,25 +17,19 @@ type LookupParams = {
 
 export class AniZip {
   private static buildQuery(params: LookupParams): string {
-    const entries = Object.entries(params).filter(
-      ([, v]) => v !== undefined && v !== null,
-    );
+    const entries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null);
     if (entries.length === 0) return "";
     return entries.map(([k, v]) => `${k}=${v}`).join("&");
   }
 
-  static async getMappings(
-    params: LookupParams,
-  ): Promise<ExternalMappings | null> {
+  static async getMappings(params: LookupParams): Promise<ExternalMappings | null> {
     try {
       const query = this.buildQuery(params);
       if (!query) return null;
 
       const res = await fetch(`${ANI_ZIP_BASE}/mappings?${query}`);
       if (!res.ok) {
-        Logger.warn(
-          `AniZip getMappings failed: ${res.status} ${res.statusText}`,
-        );
+        Logger.warn(`AniZip getMappings failed: ${res.status} ${res.statusText}`);
         return null;
       }
 
@@ -66,24 +57,20 @@ export class AniZip {
         imdb_id: d.imdb_id ?? null,
         themoviedb_id: d.themoviedb_id ?? null,
       };
-    } catch (err) {
+    } catch (_err) {
       Logger.warn(`AniZip getMappings error: ${String(err)}`);
       return null;
     }
   }
 
-  static async getFullData(
-    params: LookupParams,
-  ): Promise<AniZipResponse | null> {
+  static async getFullData(params: LookupParams): Promise<AniZipResponse | null> {
     try {
       const query = this.buildQuery(params);
       if (!query) return null;
 
       const res = await fetch(`${ANI_ZIP_BASE}/mappings?${query}`);
       if (!res.ok) {
-        Logger.warn(
-          `AniZip getFullData failed: ${res.status} ${res.statusText}`,
-        );
+        Logger.warn(`AniZip getFullData failed: ${res.status} ${res.statusText}`);
         return null;
       }
 
@@ -118,20 +105,18 @@ export class AniZip {
         specialCount: d.specialCount,
         images: d.images,
       };
-    } catch (err) {
+    } catch (_err) {
       Logger.warn(`AniZip getFullData error: ${String(err)}`);
       return null;
     }
   }
 
-  static async getEpisodes(
-    params: LookupParams,
-  ): Promise<AniZipEpisode[] | null> {
+  static async getEpisodes(params: LookupParams): Promise<AniZipEpisode[] | null> {
     try {
       const full = await this.getFullData(params);
       if (!full) return null;
       return Object.values(full.episodes);
-    } catch (err) {
+    } catch (_err) {
       Logger.warn(`AniZip getEpisodes error: ${String(err)}`);
       return null;
     }

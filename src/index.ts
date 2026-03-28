@@ -8,12 +8,10 @@ validateConfig();
 const app = await createApp();
 
 if (isDeno) {
-  // @ts-ignore
+  // @ts-expect-error - Deno global
   Deno.serve({ port: PORT }, app.fetch);
 } else {
   app.listen(PORT);
 }
 
-Logger.info(
-  `Started at http://localhost:${PORT}`,
-);
+Logger.info(`Started at http://localhost:${PORT}`);

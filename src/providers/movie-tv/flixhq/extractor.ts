@@ -63,8 +63,8 @@ export class VidCloud {
     let result: string;
     try {
       result = Buffer.from(encrypted, "base64").toString("utf8");
-    } catch (error: any) {
-      throw new Error(`Base64 decoding failed: ${error.message}`);
+    } catch (_error: any) {
+      throw new Error(`Base64 decoding failed: ${_error.message}`, { cause: _error });
     }
     const keyphrase = secret + nonce;
     for (let i = 1; i <= iterations; i++) {
@@ -74,18 +74,26 @@ export class VidCloud {
       this.characterSet.forEach((char, idx) => {
         mapping.set(shuffled[idx], char);
       });
-      result = result.split("").map((c) => mapping.get(c) || c).join("");
+      result = result
+        .split("")
+        .map((c) => mapping.get(c) || c)
+        .join("");
       result = this.ColumnarTranspositionCipher(result, passphrase);
       const seed = this.hashKeyphraseToSeed(passphrase);
       const prng = this.LinearCongruentialPrng(seed);
-      result = result.split("").map((char) => {
-        const charIndex = this.characterSet.indexOf(char);
-        if (charIndex === -1) {
-          return char;
-        }
-        const offset = prng() % this.characterSet.length;
-        return this.characterSet[(charIndex - offset + this.characterSet.length) % this.characterSet.length];
-      }).join("");
+      result = result
+        .split("")
+        .map((char) => {
+          const charIndex = this.characterSet.indexOf(char);
+          if (charIndex === -1) {
+            return char;
+          }
+          const offset = prng() % this.characterSet.length;
+          return this.characterSet[
+            (charIndex - offset + this.characterSet.length) % this.characterSet.length
+          ];
+        })
+        .join("");
     }
     const lengthStr = result.slice(0, 4);
     const content = result.slice(4);
@@ -96,7 +104,8 @@ export class VidCloud {
     return content.slice(0, length);
   }
 
-  private primaryKeyUrl = "https://raw.githubusercontent.com/yogesh-hacker/MegacloudKeys/refs/heads/main/keys.json";
+  private primaryKeyUrl =
+    "https://raw.githubusercontent.com/yogesh-hacker/MegacloudKeys/refs/heads/main/keys.json";
 
   async fetchKey(url: string) {
     const response = await axios.get(url);
@@ -112,13 +121,13 @@ export class VidCloud {
       try {
         clientKey = await getClientKey(videoUrl.href, referer);
         if (clientKey) break;
-      } catch (e) {
+      } catch (_e) {
         await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
       }
     }
     if (!clientKey) throw new Error("Failed to fetch ClientKey");
 
-    const match = /\/([^\/\?]+)(?:\?|$)/.exec(videoUrl.href);
+    const match = /\/([^/?]+)(?:\?|$)/.exec(videoUrl.href);
     const sourceId = match?.[1];
     if (!sourceId) throw new Error("Failed to fetch sourceId");
 

@@ -3,7 +3,12 @@ import * as cheerio from "cheerio";
 import { VidCloud } from "./extractor";
 import * as parser from "./parser";
 import { flixhq } from "../../origins";
-import { HIMovieGenres, HIMovieCountryCode, HIMoviesGenreID, HIMoviesCountryID } from "../himovies/mappings";
+import {
+  HIMovieGenres,
+  HIMovieCountryCode,
+  HIMoviesGenreID,
+  HIMoviesCountryID,
+} from "../himovies/mappings";
 
 export class FlixHQ {
   private static baseUrl = flixhq;
@@ -53,19 +58,32 @@ export class FlixHQ {
       const response = await axios.get(`${this.baseUrl}/search/${this.createSlug(query)}`, {
         params: { page },
       });
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
   }
 
-  static async advancedSearch(type = "all", quality = "all", genre = "all", country = "all", year = "all", page = 1) {
+  static async advancedSearch(
+    type = "all",
+    quality = "all",
+    genre = "all",
+    country = "all",
+    year = "all",
+    page = 1,
+  ) {
     const genreId = this.getMappedValue(genre, HIMoviesGenreID);
     const countryId = this.getMappedValue(country, HIMoviesCountryID);
     const url = `${this.baseUrl}/filter?type=${type}&quality=${quality}&release_year=${year}&genre=${genreId}&country=${countryId}&page=${page}`;
     try {
       const response = await axios.get(url);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -93,7 +111,10 @@ export class FlixHQ {
   static async fetchPopularMovies(page = 1) {
     try {
       const response = await axios.get(`${this.baseUrl}/movie?page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -102,7 +123,10 @@ export class FlixHQ {
   static async fetchPopularTv(page = 1) {
     try {
       const response = await axios.get(`${this.baseUrl}/tv-show?page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -111,7 +135,10 @@ export class FlixHQ {
   static async fetchTopMovies(page = 1) {
     try {
       const response = await axios.get(`${this.baseUrl}/top-imdb?type=movie&page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -120,7 +147,10 @@ export class FlixHQ {
   static async fetchTopTv(page = 1) {
     try {
       const response = await axios.get(`${this.baseUrl}/top-imdb?type=tv&page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -129,7 +159,10 @@ export class FlixHQ {
   static async fetchUpcoming(page = 1) {
     try {
       const response = await axios.get(`${this.baseUrl}/coming-soon?page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -139,7 +172,10 @@ export class FlixHQ {
     const value = this.getMappedValue(genre, HIMovieGenres);
     try {
       const response = await axios.get(`${this.baseUrl}/genre/${value}?page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -149,7 +185,10 @@ export class FlixHQ {
     const value = this.getMappedValue(country, HIMovieCountryCode);
     try {
       const response = await axios.get(`${this.baseUrl}/country/${value}?page=${page}`);
-      return parser.parsePaginatedResults(cheerio.load(response.data), "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item");
+      return parser.parsePaginatedResults(
+        cheerio.load(response.data),
+        "div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      );
     } catch (error: any) {
       return { error: error.message };
     }
@@ -161,29 +200,37 @@ export class FlixHQ {
       const mediaPath = mediaId.replace("-", "/");
       const response = await axios.get(`${this.baseUrl}/${mediaPath}`);
       const { data, recommended } = parser.parseInfo(cheerio.load(response.data));
-      
+
       let episodes: any[] = [];
       const internalId = mediaPath.split("-").at(-1);
 
       if (data.type === "TV") {
         const seasonsRes = await axios.get(this.buildAjaxUrl(internalId!, "season"), {
-          headers: { "X-Requested-With": "XMLHttpRequest", Referer: `${this.baseUrl}/${mediaPath}` },
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Referer: `${this.baseUrl}/${mediaPath}`,
+          },
         });
         const seasons = parser.parseSeasons(cheerio.load(seasonsRes.data));
         for (const { seasonId, seasonNumber } of seasons) {
           const epRes = await axios.get(this.buildAjaxUrl(seasonId!, "tv"), {
-            headers: { "X-Requested-With": "XMLHttpRequest", Referer: `${this.baseUrl}/${mediaPath}` },
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              Referer: `${this.baseUrl}/${mediaPath}`,
+            },
           });
           const epList = parser.parseEpisodes(cheerio.load(epRes.data), seasonNumber, mediaId);
           episodes.push(...epList);
         }
       } else {
-        episodes = [{
-          episodeId: data.id?.replace("watch-", "") || mediaId.replace("watch-", ""),
-          title: data.name,
-          episodeNumber: 1,
-          seasonNumber: 0,
-        }];
+        episodes = [
+          {
+            episodeId: data.id?.replace("watch-", "") || mediaId.replace("watch-", ""),
+            title: data.name,
+            episodeNumber: 1,
+            seasonNumber: 0,
+          },
+        ];
       }
       return { data, providerEpisodes: episodes, recommended };
     } catch (error: any) {
@@ -249,12 +296,15 @@ export class FlixHQ {
         refererPath = `${this.baseUrl}/${episodeId.split("-episode-").at(0)?.replace("-", "/")}`;
       }
 
-      const embedRes = await axios.get(`${this.baseUrl}/ajax/episode/sources/${selectedServer.serverId}`, {
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          Referer: `${refererPath}.${selectedServer.serverId}`,
+      const embedRes = await axios.get(
+        `${this.baseUrl}/ajax/episode/sources/${selectedServer.serverId}`,
+        {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Referer: `${refererPath}.${selectedServer.serverId}`,
+          },
         },
-      });
+      );
       if (!embedRes.data?.link) throw new Error("Failed to get embed link");
 
       return await this.fetchSources(embedRes.data.link, server);

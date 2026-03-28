@@ -73,7 +73,7 @@ export const animekaiInfoSchema = z.object({
       isSubbed: z.boolean(),
       isDubbed: z.boolean(),
       url: z.string(),
-    })
+    }),
   ),
 });
 

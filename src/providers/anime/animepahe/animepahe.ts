@@ -11,19 +11,8 @@ import {
   unpackJsAndCombine,
   USER_AGENT,
 } from "./scraper";
-import type {
-  AiringItem,
-  AnimeMeta,
-  AnimeSearchItem,
-  Episode,
-  StreamResult,
-} from "./types";
-import {
-  airingSchema,
-  releaseSchema,
-  searchSchema,
-} from "./types";
-
+import type { AiringItem, AnimeMeta, AnimeSearchItem, Episode, StreamResult } from "./types";
+import { airingSchema, releaseSchema, searchSchema } from "./types";
 
 import { animepahe as ANIMEPAHE_BASE_URL } from "../../origins";
 
@@ -57,7 +46,9 @@ export class Animepahe {
         status: item.status,
         year: item.year,
         score: item.score,
-        poster: item.poster.startsWith("http") ? item.poster : `https://i.animepahe.si/posters/${item.poster}`,
+        poster: item.poster.startsWith("http")
+          ? item.poster
+          : `https://i.animepahe.si/posters/${item.poster}`,
         session: item.session,
       }));
     } catch {
@@ -90,8 +81,8 @@ export class Animepahe {
         fansub: item.fansub,
         created_at: item.created_at,
       }));
-    } catch (err) {
-      Logger.error(`AnimePahe latest error: ${String(err)}`);
+    } catch (_err) {
+      Logger.error(`AnimePahe latest error: ${String(_err)}`);
       return [];
     }
   }
@@ -112,15 +103,15 @@ export class Animepahe {
           ?.replace(/<br\s*\/?>/g, "\n")
           .trim() ?? "";
 
-      const name =
-        $('span[style="user-select:text"]').text().trim() ?? "";
+      const name = $('span[style="user-select:text"]').text().trim() ?? "";
 
-      const poster =
-        $('img[data-src$=".jpg"]').attr("data-src")?.trim() ?? "";
+      const poster = $('img[data-src$=".jpg"]').attr("data-src")?.trim() ?? "";
 
       const backgroundSrc = $("div.anime-cover").attr("data-src")?.trim() ?? "";
       const background = backgroundSrc
-        ? (backgroundSrc.startsWith("http") ? backgroundSrc : `https:${backgroundSrc}`)
+        ? backgroundSrc.startsWith("http")
+          ? backgroundSrc
+          : `https:${backgroundSrc}`
         : "";
 
       let aired = "";
@@ -146,33 +137,37 @@ export class Animepahe {
         try {
           const url = new URL(href, ANIMEPAHE_BASE_URL).href;
           externalLinks.push(url);
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       });
 
       return {
-        id, name, description,
+        id,
+        name,
+        description,
         poster: poster || null,
         background: background || null,
-        aired, duration, genres, externalLinks
+        aired,
+        duration,
+        genres,
+        externalLinks,
       };
-    } catch (err) {
-      Logger.error(`AnimePahe info error: ${String(err)}`);
+    } catch (_err) {
+      Logger.error(`AnimePahe info error: ${String(_err)}`);
       return null;
     }
   }
 
   // ── Streams ────────────────────────────────────────────────────────────
 
-  static async *streams(
-    animeId: string,
-    episodeSession: string,
-  ): AsyncGenerator<StreamResult> {
+  static async *streams(animeId: string, episodeSession: string): AsyncGenerator<StreamResult> {
     try {
       const [animeName, res] = await Promise.all([
         this.getAnimeName(animeId).catch(() => "Anime"),
         fetch(`${ANIMEPAHE_BASE_URL}/play/${animeId}/${episodeSession}`, {
           headers: this.headers(),
-        })
+        }),
       ]);
 
       const animeTitle = animeName;
@@ -183,12 +178,12 @@ export class Animepahe {
       const downloadLinks = $("div#pickDownload > a").toArray();
 
       const corsHeaders = {
-        "Referer": "https://kwik.cx/",
-      }
+        Referer: "https://kwik.cx/",
+      };
 
       // Try to find the episode number for the filename
       const episodes = await this.fetchAllEpisodes(animeId).catch(() => []);
-      const episode = episodes.find(ep => ep.session === episodeSession);
+      const episode = episodes.find((ep) => ep.session === episodeSession);
       const epNum = episode?.episode || "X";
 
       for (let i = 0; i < buttons.length; i++) {
@@ -203,13 +198,10 @@ export class Animepahe {
             const directUrl = await this.extractDirectUrl(kwikLink, paheWinLink);
             if (!directUrl) continue;
 
-            const downloadUrl = this.generateDownloadUrl(
-              directUrl,
-              animeTitle,
-              epNum,
-              audio,
-              quality
-            ) || paheWinLink || null;
+            const downloadUrl =
+              this.generateDownloadUrl(directUrl, animeTitle, epNum, audio, quality) ||
+              paheWinLink ||
+              null;
 
             yield {
               id: `${animeId}--${quality}--${audio}`,
@@ -219,15 +211,15 @@ export class Animepahe {
               quality,
               audio,
               downloadUrl,
-              corsHeaders
+              corsHeaders,
             };
-          } catch (err) {
-            Logger.error(`Error extracting stream for ${quality}p ${audio}: ${String(err)}`);
+          } catch (_err) {
+            Logger.error(`Error extracting stream for ${quality}p ${audio}: ${String(_err)}`);
           }
         }
       }
-    } catch (err) {
-      Logger.error(`AnimePahe streams error: ${String(err)}`);
+    } catch (_err) {
+      Logger.error(`AnimePahe streams error: ${String(_err)}`);
     }
   }
 
@@ -242,7 +234,7 @@ export class Animepahe {
       const $ = cheerio.load(html);
 
       return $('span[style="user-select:text"]').text().trim() || "Anime";
-    } catch (err) {
+    } catch (_err) {
       Logger.error(`Failed to get name for anime ${id}:`, err);
       return "Anime";
     }
@@ -251,8 +243,6 @@ export class Animepahe {
   // ═══════════════════════════════════════════════════════════════════════
   // Private Helpers
   // ═══════════════════════════════════════════════════════════════════════
-
-
 
   static async fetchAllEpisodes(id: string): Promise<Episode[]> {
     try {
@@ -265,13 +255,8 @@ export class Animepahe {
       let allData = [...parsed.data.data];
 
       if (parsed.data.last_page > 1) {
-        const pages = Array.from(
-          { length: parsed.data.last_page - 1 },
-          (_, i) => i + 2,
-        );
-        const remaining = await Promise.all(
-          pages.map((page) => this.fetchReleasePage(id, page)),
-        );
+        const pages = Array.from({ length: parsed.data.last_page - 1 }, (_, i) => i + 2);
+        const remaining = await Promise.all(pages.map((page) => this.fetchReleasePage(id, page)));
         for (const pageData of remaining) {
           if (!pageData?.data) continue;
           const pageParsed = releaseSchema.safeParse(pageData);
@@ -295,8 +280,8 @@ export class Animepahe {
 
       episodes.sort((a, b) => a.episode - b.episode);
       return episodes;
-    } catch (err) {
-      Logger.error(`AnimePahe fetchAllEpisodes error: ${String(err)}`);
+    } catch (_err) {
+      Logger.error(`AnimePahe fetchAllEpisodes error: ${String(_err)}`);
       return [];
     }
   }
@@ -345,10 +330,7 @@ export class Animepahe {
 
   // ── HLS Stream Extraction ─────────────────────────────────────────────
 
-  private static async extractHls(
-    paheWinLink: string,
-    originalRes: Response,
-  ): Promise<string> {
+  private static async extractHls(paheWinLink: string, originalRes: Response): Promise<string> {
     const kwikHeadersRes = await fetch(`${paheWinLink}/i`, {
       redirect: "manual",
       headers: { Referer: "https://animepahe.com" },
@@ -404,10 +386,9 @@ export class Animepahe {
       statusCode = postRes.status;
       attempts++;
       if (statusCode === 302) {
-        location = getMapValue(
-          JSON.stringify(Object.fromEntries(postRes.headers.entries())),
-          "location",
-        ) ?? "";
+        location =
+          getMapValue(JSON.stringify(Object.fromEntries(postRes.headers.entries())), "location") ??
+          "";
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -417,7 +398,10 @@ export class Animepahe {
     return location;
   }
 
-  private static async extractDirectUrl(kwikLink: string, paheWinLink?: string): Promise<string | null> {
+  private static async extractDirectUrl(
+    kwikLink: string,
+    paheWinLink?: string,
+  ): Promise<string | null> {
     try {
       return await this.extractDirect(kwikLink);
     } catch (directError) {
@@ -439,7 +423,7 @@ export class Animepahe {
     animeTitle: string,
     episode: string | number,
     audio: string,
-    quality: string
+    quality: string,
   ): string | null {
     const mp4Base = this.getMp4Url(directUrl);
     if (!mp4Base) return null;

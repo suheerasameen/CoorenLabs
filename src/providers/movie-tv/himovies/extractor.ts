@@ -34,7 +34,7 @@ export async function getClientKey(embedUrl: string, referer: string): Promise<s
           salts.push(varMatch[1]);
         }
         const objMatch = content.match(
-          /_[a-zA-Z0-9_]+\s*=\s*{[^}]*x\s*:\s*['"]([a-zA-Z0-9]{16,})['"][^}]*y\s*:\s*['"]([a-zA-Z0-9]{16,})['"][^}]*z\s*:\s*['"]([a-zA-Z0-9]{16,})['"]/
+          /_[a-zA-Z0-9_]+\s*=\s*{[^}]*x\s*:\s*['"]([a-zA-Z0-9]{16,})['"][^}]*y\s*:\s*['"]([a-zA-Z0-9]{16,})['"][^}]*z\s*:\s*['"]([a-zA-Z0-9]{16,})['"]/,
         );
         if (objMatch?.[1] && objMatch[2] && objMatch[3]) {
           const key = objMatch[1] + objMatch[2] + objMatch[3];
@@ -45,7 +45,9 @@ export async function getClientKey(embedUrl: string, referer: string): Promise<s
       if (nonceAttr && nonceAttr.length >= 32) {
         salts.push(nonceAttr);
       }
-      const metaContent = $("meta[name]").filter((i, el) => $(el).attr("name")?.startsWith("_")).attr("content");
+      const metaContent = $("meta[name]")
+        .filter((i, el) => $(el).attr("name")?.startsWith("_"))
+        .attr("content");
       if (metaContent && /[a-zA-Z0-9]{32,}/.test(metaContent)) {
         salts.push(metaContent);
       }
@@ -58,8 +60,8 @@ export async function getClientKey(embedUrl: string, referer: string): Promise<s
       if (uniqueSalts.length > 0) {
         return uniqueSalts[0];
       }
-    } catch (error) {
-      console.error("getClientKey error:", error);
+    } catch (_error) {
+      console.error("getClientKey error:", _error);
     }
   }
   return "";
@@ -77,7 +79,9 @@ export class VideoStream {
       hash = charCode + hash * multiplier + (hash << 7n) - hash;
     }
     const modHash = Number(hash % 0x7fffffffffffffffn);
-    const xorProcessed = [...input].map((char) => String.fromCharCode(char.charCodeAt(0) ^ 247)).join("");
+    const xorProcessed = [...input]
+      .map((char) => String.fromCharCode(char.charCodeAt(0) ^ 247))
+      .join("");
     const shift = (modHash % xorProcessed.length) + 5;
     const rotated = xorProcessed.slice(shift) + xorProcessed.slice(0, shift);
     const reversedNonce = [...nonce].reverse().join("");
@@ -95,7 +99,9 @@ export class VideoStream {
     const cols = key.length;
     const rows = Math.ceil(text.length / cols);
     const grid = Array.from({ length: rows }, () => Array(cols).fill(""));
-    const columnOrder = [...key].map((char, idx) => ({ char, idx })).sort((a, b) => a.char.charCodeAt(0) - b.char.charCodeAt(0));
+    const columnOrder = [...key]
+      .map((char, idx) => ({ char, idx }))
+      .sort((a, b) => a.char.charCodeAt(0) - b.char.charCodeAt(0));
     let i = 0;
     for (const { idx } of columnOrder) {
       for (let row = 0; row < rows; row++) {
@@ -106,7 +112,10 @@ export class VideoStream {
   }
 
   private deterministicUnshuffle(charset: string[], key: string): string[] {
-    let seed = [...key].reduce((acc, char) => (acc * 31n + BigInt(char.charCodeAt(0))) & 0xffffffffn, 0n);
+    let seed = [...key].reduce(
+      (acc, char) => (acc * 31n + BigInt(char.charCodeAt(0))) & 0xffffffffn,
+      0n,
+    );
     const random = (limit: number) => {
       seed = (seed * 1103515245n + 12345n) & 0x7fffffffn;
       return Number(seed % BigInt(limit));
@@ -120,7 +129,8 @@ export class VideoStream {
   }
 
   async fetchKey(): Promise<string> {
-    const url = "https://raw.githubusercontent.com/yogesh-hacker/MegacloudKeys/refs/heads/main/keys.json";
+    const url =
+      "https://raw.githubusercontent.com/yogesh-hacker/MegacloudKeys/refs/heads/main/keys.json";
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -134,8 +144,8 @@ export class VideoStream {
         }
       }
       throw new Error(`Invalid 'vidstr' field or key not found in JSON from ${url}.`);
-    } catch (error) {
-      throw new Error(`Failed to fetch key from ${url}: ${error}`);
+    } catch (_error) {
+      throw new Error(`Failed to fetch key from ${url}: ${_error}`, { cause: _error });
     }
   }
 
@@ -144,17 +154,22 @@ export class VideoStream {
     const keyphrase = this.deriveKey(secret, nonce);
     for (let round = rounds; round >= 1; round--) {
       const passphrase = keyphrase + round;
-      let seed = [...passphrase].reduce((acc, char) => (acc * 31n + BigInt(char.charCodeAt(0))) & 0xffffffffn, 0n);
+      let seed = [...passphrase].reduce(
+        (acc, char) => (acc * 31n + BigInt(char.charCodeAt(0))) & 0xffffffffn,
+        0n,
+      );
       const random = (limit: number) => {
         seed = (seed * 1103515245n + 12345n) & 0x7fffffffn;
         return Number(seed % BigInt(limit));
       };
-      data = [...data].map((char) => {
-        const idx = this.DEFAULT_CHARSET.indexOf(char);
-        if (idx === -1) return char;
-        const offset = random(95);
-        return this.DEFAULT_CHARSET[(idx - offset + 95) % 95];
-      }).join("");
+      data = [...data]
+        .map((char) => {
+          const idx = this.DEFAULT_CHARSET.indexOf(char);
+          if (idx === -1) return char;
+          const offset = random(95);
+          return this.DEFAULT_CHARSET[(idx - offset + 95) % 95];
+        })
+        .join("");
       data = this.columnarTranspositionCipher(data, passphrase);
       const shuffled = this.deterministicUnshuffle(this.DEFAULT_CHARSET, passphrase);
       const mapping: Record<string, string> = {};
@@ -179,8 +194,8 @@ export class VideoStream {
         if (clientKey) {
           break;
         }
-      } catch (error) {
-        console.error(`Attempt ${attempt + 1} failed to fetch ClientKey: ${error}`);
+      } catch (_error) {
+        console.error(`Attempt ${attempt + 1} failed to fetch ClientKey: ${_error}`);
       }
       if (attempt < MAX_RETRIES - 1) {
         const delay = Math.pow(2, attempt) * 1000;
@@ -191,7 +206,7 @@ export class VideoStream {
       throw new Error("Failed to fetch ClientKey after multiple retries.");
     }
 
-    const match = /\/([^\/\?]+)(?:\?|$)/.exec(videoUrl.href);
+    const match = /\/([^/?]+)(?:\?|$)/.exec(videoUrl.href);
     const sourceId = match?.[1];
     if (!sourceId) {
       throw new Error("Failed to extract source ID");
@@ -251,7 +266,11 @@ export class VideoStream {
         }
       }
 
-      if (initialResponse.tracks && Array.isArray(initialResponse.tracks) && initialResponse.tracks.length > 0) {
+      if (
+        initialResponse.tracks &&
+        Array.isArray(initialResponse.tracks) &&
+        initialResponse.tracks.length > 0
+      ) {
         extractedData.subtitles = initialResponse.tracks.map((track: any) => ({
           url: track.file,
           lang: track.label || track.kind || "Unknown",
@@ -259,8 +278,8 @@ export class VideoStream {
         }));
       }
       return extractedData;
-    } catch (error: any) {
-      throw new Error(error.message);
+    } catch (_error: any) {
+      throw new Error(_error.message, { cause: _error });
     }
   }
 }

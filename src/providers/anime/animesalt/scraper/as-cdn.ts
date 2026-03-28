@@ -28,10 +28,7 @@ export async function getAsCdnSource(
     console.log("GOT COOKIE:", cookieStr);
 
     if (!cookieStr) {
-      console.log(
-        "[ERROR]  `fireplayer_player` cookie not found in headers:",
-        url,
-      );
+      console.log("[ERROR]  `fireplayer_player` cookie not found in headers:", url);
       return;
     }
 
@@ -60,12 +57,7 @@ export async function getAsCdnSource(
       return;
     }
 
-    const {
-      hls,
-      videoSource,
-      securedLink,
-      videoImage: thumbnail,
-    } = await res2.json();
+    const { hls, videoSource, securedLink, videoImage: thumbnail } = await res2.json();
     const type = hls ? "hls" : "mp4";
     const streamUrl = securedLink || videoSource;
 
@@ -83,7 +75,7 @@ export async function getAsCdnSource(
       headers: corsHeaders,
       proxiedUrl: proxifyUrl(streamUrl, type, corsHeaders),
     };
-  } catch (err) {
+  } catch (_err) {
     console.log("[Error]", err);
   }
 }

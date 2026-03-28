@@ -5,13 +5,7 @@ import { ANIME_SALT_BASE } from "./constants";
 import { getAsCdnSource } from "./scraper/as-cdn";
 import { getRubystmSource } from "./scraper/rubystm";
 
-import type {
-  AnimeCard,
-  LastEpisode,
-  Season,
-  Episode,
-  DirectSource
-} from "./types";
+import type { AnimeCard, LastEpisode, Season, Episode, DirectSource } from "./types";
 
 export class AnimeSalt {
   private static async fetchHtml(url: string) {
@@ -43,15 +37,15 @@ export class AnimeSalt {
           url,
           thumbnail: poster,
           epXseason: "",
-          ago: ""
+          ago: "",
         });
       });
 
       const result = { lastEpisodes };
       Cache.set(key, JSON.stringify(result), 43200);
       return result;
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
       return null;
     }
   }
@@ -91,8 +85,8 @@ export class AnimeSalt {
       const result = { data };
       Cache.set(key, JSON.stringify(result), 43200);
       return result;
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
       return null;
     }
   }
@@ -142,8 +136,8 @@ export class AnimeSalt {
 
       Cache.set(key, JSON.stringify(result), 604800);
       return result;
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
       return null;
     }
   }
@@ -179,8 +173,8 @@ export class AnimeSalt {
       const result = { data };
       Cache.set(key, JSON.stringify(result), 2592000);
       return result;
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
       return null;
     }
   }
@@ -191,12 +185,9 @@ export class AnimeSalt {
 
       const title = $("h1").text().trim();
 
-      const poster =
-        $(".bd img").attr("data-src") ||
-        $(".bd img").attr("src") || "";
+      const poster = $(".bd img").attr("data-src") || $(".bd img").attr("src") || "";
 
-      const description =
-        $("#overview-text p").text().trim();
+      const description = $("#overview-text p").text().trim();
 
       const downloadLinks: any[] = [];
 
@@ -218,8 +209,8 @@ export class AnimeSalt {
         downloadLinks,
         ...sources,
       };
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
       return null;
     }
   }
@@ -236,8 +227,8 @@ export class AnimeSalt {
       const seasons = postId ? await this.getSeasons(postId) : [];
 
       return { title, seasons };
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
       return null;
     }
   }
@@ -268,8 +259,8 @@ export class AnimeSalt {
           };
         } catch {}
       }
-    } catch (err) {
-      Logger.error(err);
+    } catch (_err) {
+      Logger.error(_err);
     }
   }
 
@@ -301,7 +292,7 @@ export class AnimeSalt {
             title: $(el).text().trim(),
             epXseason: "",
             url,
-            thumbnail: ""
+            thumbnail: "",
           });
         });
 

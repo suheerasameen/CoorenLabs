@@ -167,10 +167,9 @@ export type ContentTop10Card = {
   quality: string;
 };
 
-
 // export type SearchResult = (Omit<MovieCard, "type"> | Omit<TvCard, "type">) & {
 //   type: "movie" | "tv",
 // };
-export type SearchResult = 
+export type SearchResult =
   | (Omit<MovieCard, "type"> & { type: "movie" })
   | (Omit<TvCard, "type"> & { type: "tv" });

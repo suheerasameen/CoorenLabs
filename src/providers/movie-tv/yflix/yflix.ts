@@ -16,10 +16,12 @@ export class yFlix {
   static async search(_query: string, page: number = 1, type: string = null) {
     const query = _query.replaceAll(" ", "+");
 
-    const url = yflix +
-      "/browser?keyword=" + encodeURIComponent(query)
-      + (page > 1 ? "&page=" + page : "")
-      + (type ? "&type%5B%5D=" + type : "")
+    const url =
+      yflix +
+      "/browser?keyword=" +
+      encodeURIComponent(query) +
+      (page > 1 ? "&page=" + page : "") +
+      (type ? "&type%5B%5D=" + type : "");
 
     const data = await fetcher(url, true, "yflix");
 
@@ -33,14 +35,13 @@ export class yFlix {
         query: query.replaceAll("+", " "),
         page,
         type: type ? type : "all",
-        data: searchResults
+        data: searchResults,
       };
-
     } else {
       return {
         success: false,
         query: query.replaceAll("+", " "),
-        page
+        page,
       };
     }
   }

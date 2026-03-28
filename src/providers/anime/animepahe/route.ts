@@ -23,22 +23,18 @@ export const animepaheRoutes = new Elysia({ prefix: "/animepahe" })
   })
 
   .get("/episode/:id/:session", async ({ params: { id, session } }) => {
-
     const stream = new ReadableStream({
       async start(controller) {
         for await (const result of Animepahe.streams(id, session)) {
-          controller.enqueue(
-            new TextEncoder().encode(JSON.stringify(result) + "\n")
-          );
+          controller.enqueue(new TextEncoder().encode(JSON.stringify(result) + "\n"));
         }
         controller.close();
-      }
+      },
     });
 
     return new Response(stream, {
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
-
   });

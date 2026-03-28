@@ -110,8 +110,7 @@ export const animekaiRoutes = new Elysia({ prefix: "/animekai" })
       return { message: "episodeId is required" };
     }
     const dubParam = qs?.dub;
-    const subOrDub: "softsub" | "dub" =
-      dubParam === "true" || dubParam === "1" ? "dub" : "softsub";
+    const subOrDub: "softsub" | "dub" = dubParam === "true" || dubParam === "1" ? "dub" : "softsub";
 
     // episodeId format: "animeSlug$ep=N$token=TOKEN"
     const animeSlug = episodeId.split("$")[0] ?? episodeId;
@@ -126,7 +125,6 @@ export const animekaiRoutes = new Elysia({ prefix: "/animekai" })
       return { message: "episodeId is required" };
     }
     const dubParam = qs?.dub;
-    const subOrDub: "softsub" | "dub" =
-      dubParam === "true" || dubParam === "1" ? "dub" : "softsub";
+    const subOrDub: "softsub" | "dub" = dubParam === "true" || dubParam === "1" ? "dub" : "softsub";
     return { servers: await AnimeKai.fetchEpisodeServers(episodeId, subOrDub) };
   });

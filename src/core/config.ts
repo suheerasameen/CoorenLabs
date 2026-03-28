@@ -27,15 +27,13 @@ export const CORS_CREDENTIALS = env.CORS_CREDENTIALS === "true";
 export const OPENAPI_ENABLED = env.OPENAPI_ENABLED !== "false";
 export const OPENAPI_VERSION = env.OPENAPI_VERSION || "3.0.0";
 
-// Security Configuration  
+// Security Configuration
 export const REQUEST_TIMEOUT = parseInt(env.REQUEST_TIMEOUT || "60000", 10);
-
 
 // proxy confs
 export const SERVER_ORIGIN = env.SERVER_ORIGIN;
 
 export const SHOW_PROXIED_URL = env.SHOW_PROXIED_URL == "true";
-
 
 // Production mode check
 export const IS_PRODUCTION = NODE_ENV === "production";
@@ -53,11 +51,9 @@ export function validateConfig(): void {
     return !value;
   });
 
-
-
   if (missing.length > 0) {
     throw new Error(
-      `Missing required environment variables: ${missing.map(({ key }) => key).join(", ")}`
+      `Missing required environment variables: ${missing.map(({ key }) => key).join(", ")}`,
     );
   }
 
@@ -65,4 +61,3 @@ export function validateConfig(): void {
     console.warn("⚠️  WARNING: Using localhost domain in production mode");
   }
 }
-

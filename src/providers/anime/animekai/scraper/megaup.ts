@@ -9,7 +9,7 @@ export class MegaUp {
       const data = await res.json();
       return data.result;
     } catch (error: any) {
-      throw new Error(error.message);
+      throw new Error(error.message, { cause: error });
     }
   }
 
@@ -29,7 +29,7 @@ export class MegaUp {
       const data = await res.json();
       return data.result;
     } catch (error: any) {
-      throw new Error(error.message);
+      throw new Error(error.message, { cause: error });
     }
   }
 
@@ -50,7 +50,7 @@ export class MegaUp {
       const data = await res.json();
       return data.result;
     } catch (error: any) {
-      throw new Error(error.message);
+      throw new Error(error.message, { cause: error });
     }
   }
 
@@ -79,7 +79,7 @@ export class MegaUp {
         download: decrypted.download,
       };
     } catch (error: any) {
-      throw new Error(error.message);
+      throw new Error(error.message, { cause: error });
     }
   }
 }

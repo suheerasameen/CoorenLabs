@@ -31,8 +31,8 @@ export type IdType =
 
 export interface ParsedId {
   type: IdType;
-  raw: string;       // original input
-  value: string;     // the ID value (number as string, or UUID)
+  raw: string; // original input
+  value: string; // the ID value (number as string, or UUID)
   numericValue?: number; // if the value is numeric
 }
 
@@ -46,15 +46,15 @@ export interface ResolvedAnime {
 // ─── Prefix Map ─────────────────────────────────────────────────────────────
 
 const PREFIX_MAP: Record<string, IdType> = {
-  "mal": "mal",
-  "tmdb": "tmdb",
-  "imdb": "imdb",
-  "kitsu": "kitsu",
-  "anidb": "anidb",
-  "anisearch": "anisearch",
-  "livechart": "livechart",
-  "anilist": "anilist",
-  "internal": "internal",
+  mal: "mal",
+  tmdb: "tmdb",
+  imdb: "imdb",
+  kitsu: "kitsu",
+  anidb: "anidb",
+  anisearch: "anisearch",
+  livechart: "livechart",
+  anilist: "anilist",
+  internal: "internal",
 };
 
 // ─── Parser ─────────────────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export async function resolveId(rawId: string): Promise<ResolvedAnime | null> {
       titles: fullData.titles,
       fullData,
     };
-  } catch (err) {
+  } catch (_err) {
     Logger.error(`ID resolution error for ${rawId}: ${String(err)}`);
     return {
       parsedId: parsed,

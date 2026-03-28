@@ -5,7 +5,12 @@ export function parseItems($: cheerio.CheerioAPI, selector: string) {
   $(selector).each((_, element) => {
     const type = $(element).find("span.float-right.fdi-type").text().trim();
     const baseData = {
-      id: $(element).find("a.film-poster-ahref.flw-item-tip").attr("href")?.slice(1).replace("/", "-") || null,
+      id:
+        $(element)
+          .find("a.film-poster-ahref.flw-item-tip")
+          .attr("href")
+          ?.slice(1)
+          .replace("/", "-") || null,
       name: $(element).find("h3.film-name").text().trim() || null,
       posterImage: $(element).find("img.film-poster-img.lazyload").attr("data-src") || null,
       quality: $(element).find("div.pick.film-poster-quality").text().trim() || null,
@@ -14,7 +19,8 @@ export function parseItems($: cheerio.CheerioAPI, selector: string) {
     if (type === "Movie") {
       items.push({
         ...baseData,
-        releaseDate: Number($(element).find("div.fd-infor > span.fdi-item:first").text().trim()) || null,
+        releaseDate:
+          Number($(element).find("div.fd-infor > span.fdi-item:first").text().trim()) || null,
         duration: $(element).find("div.fd-infor > span.fdi-duration").text().trim() || null,
       });
     } else if (type === "TV") {
@@ -41,7 +47,12 @@ export function parseMixedSection($: cheerio.CheerioAPI, selector: string) {
   $(selector).each((_, element) => {
     const type = $(element).find("span.float-right.fdi-type").text().trim();
     const baseData = {
-      id: $(element).find("a.film-poster-ahref.flw-item-tip").attr("href")?.slice(1).replace("/", "-") || null,
+      id:
+        $(element)
+          .find("a.film-poster-ahref.flw-item-tip")
+          .attr("href")
+          ?.slice(1)
+          .replace("/", "-") || null,
       name: $(element).find("h3.film-name").text().trim() || null,
       posterImage: $(element).find("img.film-poster-img.lazyload").attr("data-src") || null,
       quality: $(element).find("div.pick.film-poster-quality").text().trim() || null,
@@ -50,11 +61,13 @@ export function parseMixedSection($: cheerio.CheerioAPI, selector: string) {
     if (type === "Movie") {
       items.push({
         ...baseData,
-        releaseDate: Number($(element).find("div.fd-infor > span.fdi-item:first").text().trim()) || null,
+        releaseDate:
+          Number($(element).find("div.fd-infor > span.fdi-item:first").text().trim()) || null,
         duration: $(element).find("div.fd-infor > span.fdi-duration").text().trim() || null,
       });
     } else if (type === "TV") {
-      const releaseDate = $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null;
+      const releaseDate =
+        $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null;
       const seasonText = $(element).find("div.fd-infor > span.fdi-item").eq(1).text().trim();
       const episodesText = $(element).find("div.fd-infor > span.fdi-item").eq(2).text().trim();
       let seasons = null;
@@ -81,12 +94,20 @@ export function parseHome($: cheerio.CheerioAPI) {
     slider.push({
       id: id || null,
       name: $(element).find("h3.film-title").text().trim() || null,
-      posterImage: $(element).attr("style")?.match(/url\(["']?(.*?)["']?\)/)?.[1] || null,
+      posterImage:
+        $(element)
+          .attr("style")
+          ?.match(/url\(["']?(.*?)["']?\)/)?.[1] || null,
       type: type || null,
       quality: $(element).find("div.scd-item > span.quality").text().trim() || null,
       duration: $(element).find("div.scd-item strong").eq(0).text().trim() || null,
       score: Number($(element).find("div.scd-item strong").eq(1).text().trim()) || null,
-      genre: $(element).find("div.scd-item strong").eq(2).map((i, el) => $(el).text().replace(/\s+/g, " ").trim()).get() || null,
+      genre:
+        $(element)
+          .find("div.scd-item strong")
+          .eq(2)
+          .map((i, el) => $(el).text().replace(/\s+/g, " ").trim())
+          .get() || null,
       synopsis: $(element).find("p.sc-desc").text().trim() || null,
     });
   });
@@ -98,25 +119,47 @@ export function parseHome($: cheerio.CheerioAPI) {
       Tv: parseItems($, "div#trending-tv div.film_list-wrap > div.flw-item"),
     },
     recentReleases: {
-      Movies: parseItems($, "section.block_area.block_area_home.section-id-02:first div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item"),
-      Tv: parseItems($, "section.block_area.block_area_home.section-id-02:eq(1) div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item"),
+      Movies: parseItems(
+        $,
+        "section.block_area.block_area_home.section-id-02:first div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      ),
+      Tv: parseItems(
+        $,
+        "section.block_area.block_area_home.section-id-02:eq(1) div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+      ),
     },
-    upcoming: parseMixedSection($, "section.block_area.block_area_home.section-id-02:eq(2) div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item"),
+    upcoming: parseMixedSection(
+      $,
+      "section.block_area.block_area_home.section-id-02:eq(2) div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item",
+    ),
   };
 }
 
 export function parsePaginatedResults($: cheerio.CheerioAPI, selector: string) {
   const paginationElement = $("div.pre-pagination:last ul.pagination-lg.justify-content-center");
-  const hasNextPage = ($(".pagination > li").length > 0 && $(".pagination li.active").length > 0 && !$(".pagination > li").last().hasClass("active")) || false;
-  const currentPage = Number($(paginationElement).find('li[class="page-item active"]').text().trim() || 1);
+  const hasNextPage =
+    ($(".pagination > li").length > 0 &&
+      $(".pagination li.active").length > 0 &&
+      !$(".pagination > li").last().hasClass("active")) ||
+    false;
+  const currentPage = Number(
+    $(paginationElement).find('li[class="page-item active"]').text().trim() || 1,
+  );
   const lastPage = Number(
-    paginationElement.find('a.page-link[title="Last"]').attr("href")?.split("page=").at(-1) || paginationElement.find("a.page-link:last").text().trim() || currentPage
+    paginationElement.find('a.page-link[title="Last"]').attr("href")?.split("page=").at(-1) ||
+      paginationElement.find("a.page-link:last").text().trim() ||
+      currentPage,
   );
   const items: any[] = [];
   $(selector).each((_, element) => {
     const type = $(element).find("span.float-right.fdi-type").text().trim();
     const baseData = {
-      id: $(element).find("a.film-poster-ahref.flw-item-tip").attr("href")?.slice(1).replace("/", "-") || null,
+      id:
+        $(element)
+          .find("a.film-poster-ahref.flw-item-tip")
+          .attr("href")
+          ?.slice(1)
+          .replace("/", "-") || null,
       name: $(element).find("h2.film-name").text().trim() || null,
       posterImage: $(element).find("img.film-poster-img.lazyload").attr("data-src") || null,
       quality: $(element).find("div.pick.film-poster-quality").text().trim() || null,
@@ -125,11 +168,13 @@ export function parsePaginatedResults($: cheerio.CheerioAPI, selector: string) {
     if (type === "Movie") {
       items.push({
         ...baseData,
-        releaseDate: Number($(element).find("div.fd-infor > span.fdi-item:first").text().trim()) || null,
+        releaseDate:
+          Number($(element).find("div.fd-infor > span.fdi-item:first").text().trim()) || null,
         duration: $(element).find("div.fd-infor > span.fdi-duration").text().trim() || null,
       });
     } else if (type === "TV") {
-      const seasonText = $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null;
+      const seasonText =
+        $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null;
       const episodesText = $(element).find("div.fd-infor > span.fdi-item").eq(1).text().trim();
       let seasons = null;
       if (seasonText && seasonText.startsWith("SS")) {
@@ -184,37 +229,45 @@ export function parseSearchSuggestions($: cheerio.CheerioAPI) {
 
 export function parseInfo($: cheerio.CheerioAPI) {
   const recommended: any[] = [];
-  $("div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item").each((_, element) => {
-    const type = $(element).find("span.float-right.fdi-type").text().trim();
-    const baseData = {
-      id: $(element).find("a.film-poster-ahref.flw-item-tip").attr("href")?.slice(1).replace("/", "-") || null,
-      name: $(element).find("h3.film-name").text().trim() || null,
-      posterImage: $(element).find("img.film-poster-img.lazyload").attr("data-src") || null,
-      quality: $(element).find("div.pick.film-poster-quality").text().trim() || null,
-      type,
-    };
-    if (type === "Movie") {
-      recommended.push({
-        ...baseData,
-        releaseDate: $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null,
-        duration: $(element).find("div.fd-infor > span.fdi-duration").text().trim() || null,
-      });
-    } else if (type === "TV") {
-      const seasonText = $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null;
-      const episodesText = $(element).find("div.fd-infor > span.fdi-item").eq(1).text().trim();
-      let seasons = null;
-      if (seasonText && seasonText.startsWith("SS")) {
-        const seasonNum = parseInt(seasonText.replace(/\D+/g, ""), 10);
-        seasons = Number.isNaN(seasonNum) ? null : seasonNum;
+  $("div.block_area-content.block_area-list.film_list.film_list-grid div.flw-item").each(
+    (_, element) => {
+      const type = $(element).find("span.float-right.fdi-type").text().trim();
+      const baseData = {
+        id:
+          $(element)
+            .find("a.film-poster-ahref.flw-item-tip")
+            .attr("href")
+            ?.slice(1)
+            .replace("/", "-") || null,
+        name: $(element).find("h3.film-name").text().trim() || null,
+        posterImage: $(element).find("img.film-poster-img.lazyload").attr("data-src") || null,
+        quality: $(element).find("div.pick.film-poster-quality").text().trim() || null,
+        type,
+      };
+      if (type === "Movie") {
+        recommended.push({
+          ...baseData,
+          releaseDate: $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null,
+          duration: $(element).find("div.fd-infor > span.fdi-duration").text().trim() || null,
+        });
+      } else if (type === "TV") {
+        const seasonText =
+          $(element).find("div.fd-infor > span.fdi-item:first").text().trim() || null;
+        const episodesText = $(element).find("div.fd-infor > span.fdi-item").eq(1).text().trim();
+        let seasons = null;
+        if (seasonText && seasonText.startsWith("SS")) {
+          const seasonNum = parseInt(seasonText.replace(/\D+/g, ""), 10);
+          seasons = Number.isNaN(seasonNum) ? null : seasonNum;
+        }
+        let totalEpisodes = null;
+        if (episodesText && episodesText.startsWith("EPS")) {
+          const episodesNum = parseInt(episodesText.replace(/\D+/g, ""), 10);
+          totalEpisodes = Number.isNaN(episodesNum) ? null : episodesNum;
+        }
+        recommended.push({ ...baseData, seasons, totalEpisodes });
       }
-      let totalEpisodes = null;
-      if (episodesText && episodesText.startsWith("EPS")) {
-        const episodesNum = parseInt(episodesText.replace(/\D+/g, ""), 10);
-        totalEpisodes = Number.isNaN(episodesNum) ? null : episodesNum;
-      }
-      recommended.push({ ...baseData, seasons, totalEpisodes });
-    }
-  });
+    },
+  );
 
   const id = $("h2.heading-name > a").attr("href")?.slice(1).replace("/", "-") || null;
   const type = id?.includes("tv") ? "TV" : "Movie";
@@ -222,16 +275,37 @@ export function parseInfo($: cheerio.CheerioAPI) {
   const mediaInfo = {
     id,
     name: $("h2.heading-name > a").text().trim() || null,
-    posterImage: $("div.w_b-cover").attr("style")?.match(/url\(["']?(.*?)["']?\)/)?.[1] || null,
+    posterImage:
+      $("div.w_b-cover")
+        .attr("style")
+        ?.match(/url\(["']?(.*?)["']?\)/)?.[1] || null,
     type,
     quality: $("div.stats button.btn.btn-sm.btn-quality").text().trim() || null,
-    releaseDate: $('.row-line:has(span:contains("Released:"))').text().replace("Released:", "").trim() || null,
-    genre: $('.row-line:has(span:contains("Genre:")) a').map((i, el) => $(el).text().split("&")).get().map((v) => v.trim()) || null,
-    casts: $('.row-line:has(span:contains("Casts:")) a').map((i, el) => $(el).text().trim()).get() || null,
+    releaseDate:
+      $('.row-line:has(span:contains("Released:"))').text().replace("Released:", "").trim() || null,
+    genre:
+      $('.row-line:has(span:contains("Genre:")) a')
+        .map((i, el) => $(el).text().split("&"))
+        .get()
+        .map((v) => v.trim()) || null,
+    casts:
+      $('.row-line:has(span:contains("Casts:")) a')
+        .map((i, el) => $(el).text().trim())
+        .get() || null,
     duration: $("div.stats span.item.mr-3").eq(2).text().trim() || null,
     score: Number($("div.stats span.item.mr-3").eq(1).text().trim()) || null,
-    country: $('.row-line:has(span:contains("Country:")) a').map((i, el) => $(el).text().trim()).get() || null,
-    production: $('.row-line:has(span:contains("Production:"))').text().replace("Production:", "").replace(/\s+/g, " ").split(",").map((v) => v.trim()).filter(Boolean) || null,
+    country:
+      $('.row-line:has(span:contains("Country:")) a')
+        .map((i, el) => $(el).text().trim())
+        .get() || null,
+    production:
+      $('.row-line:has(span:contains("Production:"))')
+        .text()
+        .replace("Production:", "")
+        .replace(/\s+/g, " ")
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean) || null,
     trailer: $("iframe#iframe-trailer").attr("data-src") || null,
     synopsis: $(".description").text().trim() || null,
   };
@@ -240,33 +314,38 @@ export function parseInfo($: cheerio.CheerioAPI) {
 }
 
 export function parseSeasons($: cheerio.CheerioAPI) {
-  return $(".dropdown-menu > a").map((_, el) => {
-    const seasonId = $(el).attr("data-id");
-    const label = $(el).text().trim();
-    const seasonNumber = parseInt(label.replace(/\D/g, ""), 10) || 1;
-    return { seasonId, seasonNumber };
-  }).get();
+  return $(".dropdown-menu > a")
+    .map((_, el) => {
+      const seasonId = $(el).attr("data-id");
+      const label = $(el).text().trim();
+      const seasonNumber = parseInt(label.replace(/\D/g, ""), 10) || 1;
+      return { seasonId, seasonNumber };
+    })
+    .get();
 }
 
 export function parseEpisodes($: cheerio.CheerioAPI, seasonNumber: number, mediaId: string) {
-  return $(".nav > li").map((_, el) => {
-    const anchor = $(el).find("a");
-    const rawId = anchor.attr("id");
-    const title = anchor.attr("title");
-    const episodeTitle = title.split(":").at(1)?.trim() || null;
-    return {
-      episodeId: `${mediaId.replace("watch-", "")}-episode-${rawId.split("-")[1]}`,
-      title: episodeTitle,
-      episodeNumber: parseInt(title.split(":")[0].slice(3).trim(), 10) || null,
-      seasonNumber: seasonNumber || null,
-    };
-  }).get();
+  return $(".nav > li")
+    .map((_, el) => {
+      const anchor = $(el).find("a");
+      const rawId = anchor.attr("id");
+      const title = anchor.attr("title");
+      const episodeTitle = title.split(":").at(1)?.trim() || null;
+      return {
+        episodeId: `${mediaId.replace("watch-", "")}-episode-${rawId.split("-")[1]}`,
+        title: episodeTitle,
+        episodeNumber: parseInt(title.split(":")[0].slice(3).trim(), 10) || null,
+        seasonNumber: seasonNumber || null,
+      };
+    })
+    .get();
 }
 
 export function parseServers($: cheerio.CheerioAPI) {
   const servers: any[] = [];
   $("ul.nav > li.nav-item").each((_, element) => {
-    const serverId = $(element).find("a").attr("data-id") || $(element).find("a").attr("data-linkid");
+    const serverId =
+      $(element).find("a").attr("data-id") || $(element).find("a").attr("data-linkid");
     servers.push({
       serverId: serverId || null,
       serverName: $(element).find("a").text().trim().toLowerCase() || null,

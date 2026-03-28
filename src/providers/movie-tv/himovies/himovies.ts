@@ -59,7 +59,14 @@ export class HiMovies {
     }
   }
 
-  static async advancedSearch(type = "all", quality = "all", genre = "all", country = "all", year = "all", page = 1) {
+  static async advancedSearch(
+    type = "all",
+    quality = "all",
+    genre = "all",
+    country = "all",
+    year = "all",
+    page = 1,
+  ) {
     const genreId = this.getMappedValue(genre, HIMoviesGenreID);
     const countryId = this.getMappedValue(country, HIMoviesCountryID);
     const url = `${this.baseUrl}/filter?type=${type}&quality=${quality}&release_year=${year}&genre=${genreId}&country=${countryId}&page=${page}`;
@@ -161,29 +168,42 @@ export class HiMovies {
       const mediaPath = mediaId.replace("-", "/");
       const response = await axios.get(`${this.baseUrl}/${mediaPath}`);
       const { data, recommended } = parser.parseInfo(cheerio.load(response.data));
-      
+
       let episodes: any[] = [];
       const internalId = mediaPath.split("-").at(-1);
 
       if (data.type === "TV") {
         const seasonsRes = await axios.get(this.buildAjaxUrl(internalId!, "season"), {
-          headers: { "X-Requested-With": "XMLHttpRequest", Referer: `${this.baseUrl}/${mediaPath}` },
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Referer: `${this.baseUrl}/${mediaPath}`,
+          },
         });
         const seasons = parser.parseSeasons(cheerio.load(seasonsRes.data));
         for (const { seasonId, seasonNumber } of seasons) {
           const epRes = await axios.get(this.buildAjaxUrl(seasonId!, "tv"), {
-            headers: { "X-Requested-With": "XMLHttpRequest", Referer: `${this.baseUrl}/${mediaPath}` },
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              Referer: `${this.baseUrl}/${mediaPath}`,
+            },
           });
-          const epList = parser.parseEpisodes(cheerio.load(epRes.data), seasonNumber, data.id, mediaId);
+          const epList = parser.parseEpisodes(
+            cheerio.load(epRes.data),
+            seasonNumber,
+            data.id,
+            mediaId,
+          );
           episodes.push(...epList);
         }
       } else {
-        episodes = [{
-          episodeId: data.id?.replace("watch-", "") || mediaId.replace("watch-", ""),
-          title: data.name,
-          episodeNumber: 1,
-          seasonNumber: 0,
-        }];
+        episodes = [
+          {
+            episodeId: data.id?.replace("watch-", "") || mediaId.replace("watch-", ""),
+            title: data.name,
+            episodeNumber: 1,
+            seasonNumber: 0,
+          },
+        ];
       }
       return { data, providerEpisodes: episodes, recommended };
     } catch (error: any) {
@@ -226,12 +246,12 @@ export class HiMovies {
     try {
       const serversRes = await this.fetchServers(episodeId);
       if (serversRes.error) throw new Error(serversRes.error);
-      
+
       const servers = serversRes.data as any[];
       const priorityOrder = [server, "megacloud", "upcloud"];
       let selectedServer = null;
       for (const name of priorityOrder) {
-        selectedServer = servers.find(s => s.serverName === name);
+        selectedServer = servers.find((s) => s.serverName === name);
         if (selectedServer) break;
       }
       if (!selectedServer) throw new Error("No supported server found");
@@ -243,14 +263,17 @@ export class HiMovies {
         refererPath = episodeId.split("-episode-")[0].replace("-", "/");
       }
 
-      const embedRes = await axios.get(`${this.baseUrl}/ajax/episode/sources/${selectedServer.serverId}`, {
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          Referer: `${this.baseUrl}/${refererPath}.${selectedServer.serverId}`,
+      const embedRes = await axios.get(
+        `${this.baseUrl}/ajax/episode/sources/${selectedServer.serverId}`,
+        {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Referer: `${this.baseUrl}/${refererPath}.${selectedServer.serverId}`,
+          },
         },
-      });
+      );
       if (!embedRes.data?.link) throw new Error("Failed to get embed link");
-      
+
       return await this.fetchSources(embedRes.data.link, server);
     } catch (error: any) {
       return { error: error.message };

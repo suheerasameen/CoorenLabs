@@ -6,85 +6,78 @@ let playerUrl: string | null = null;
 let thumbnail: string | null = null;
 
 let subtitle: {
-  label: string,
-  url: string
+  label: string;
+  url: string;
 } | null = null;
 
-
 export async function moviePlayer(slug: string) {
+  const res = await ScrapeMovieSources(slug);
 
-  const res = await ScrapeMovieSources(slug)
+  const sources = res?.sources || [];
 
-  const sources = res?.sources || []
+  const proxy1 = sources[0]?.proxiedUrl || null;
+  const proxy2 = sources[1]?.proxiedUrl || null;
 
-  const proxy1 = sources[0]?.proxiedUrl || null
-const proxy2 = sources[1]?.proxiedUrl || null
+  // keep your old fallback
+  playerUrl = proxy2 || proxy1;
 
-// keep your old fallback
-playerUrl = proxy2 || proxy1
+  // thumbnail logic
+  thumbnail =
+    sources[1]?.cover || // Ruby correct cover
+    sources[1]?.thumbnail || // fallback
+    sources[0]?.thumbnail || // Multi Audio
+    null;
 
-// thumbnail logic
-thumbnail =
-  sources[1]?.cover || // Ruby correct cover
-  sources[1]?.thumbnail || // fallback
-  sources[0]?.thumbnail || // Multi Audio
-  null
-
-// subtitle logic
-subtitle = sources[1]?.subtitles ?
-  {
-    label: sources[1].subtitles.label,
-    url: sources[1].subtitles.url
-  } :
-  null
-
+  // subtitle logic
+  subtitle = sources[1]?.subtitles
+    ? {
+        label: sources[1].subtitles.label,
+        url: sources[1].subtitles.url,
+      }
+    : null;
 
   if (!proxy1 && !proxy2) {
-    return new Response("Movie source not found", { status: 404 })
+    return new Response("Movie source not found", { status: 404 });
   }
 
-  return makeHtml("Movie", slug)
-
+  return makeHtml("Movie", slug);
 }
-
 
 export async function episodePlayer(slug: string) {
+  const res = await ScrapeEpisodeSources(slug);
 
-  const res = await ScrapeEpisodeSources(slug)
+  const sources = res?.sources || [];
 
-  const sources = res?.sources || []
+  const proxy1 = sources[0]?.proxiedUrl || null;
+  const proxy2 = sources[1]?.proxiedUrl || null;
 
-  const proxy1 = sources[0]?.proxiedUrl || null
-const proxy2 = sources[1]?.proxiedUrl || null
+  // keep your old fallback
+  playerUrl = proxy2 || proxy1;
 
-// keep your old fallback
-playerUrl = proxy2 || proxy1
+  // thumbnail logic
+  thumbnail =
+    sources[1]?.cover || // Ruby correct cover
+    sources[1]?.thumbnail || // fallback
+    sources[0]?.thumbnail || // Multi Audio
+    null;
 
-// thumbnail logic
-thumbnail =
-  sources[1]?.cover || // Ruby correct cover
-  sources[1]?.thumbnail || // fallback
-  sources[0]?.thumbnail || // Multi Audio
-  null
-
-// subtitle logic
-subtitle = sources[1]?.subtitles ?
-  {
-    label: sources[1].subtitles.label,
-    url: sources[1].subtitles.url
-  } :
-  null
+  // subtitle logic
+  subtitle = sources[1]?.subtitles
+    ? {
+        label: sources[1].subtitles.label,
+        url: sources[1].subtitles.url,
+      }
+    : null;
 
   if (!proxy1 && !proxy2) {
-    return new Response("Episode source not found", { status: 404 })
+    return new Response("Episode source not found", { status: 404 });
   }
 
-  return makeHtml("Episode", slug)
-
+  return makeHtml("Episode", slug);
 }
 function makeHtml(type: string, slug: string) {
-    
-    return new Response(`
+  return new Response(
+    `
 <!doctype html>
 <html lang="en">
 
@@ -200,8 +193,9 @@ const sub1 = "${subtitle?.url || ""}";
 </body>
 
 </html>
-`,{
-  headers: { "content-type": "text/html" }
-})
-
+`,
+    {
+      headers: { "content-type": "text/html" },
+    },
+  );
 }

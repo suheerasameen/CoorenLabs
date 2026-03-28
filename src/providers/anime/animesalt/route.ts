@@ -8,8 +8,7 @@ import { env } from "../../../core/runtime";
 export const SERVER_ORIGIN = env.SERVER_ORIGIN || "";
 export const PROXIFY = Boolean(env.PROXIFY) || false;
 
-if (!SERVER_ORIGIN) throw new Error("set SERVER_ORIGIN at .env!");
-
+if (!SERVER_ORIGIN && env.NODE_ENV !== "test") throw new Error("set SERVER_ORIGIN at .env!");
 
 Logger.info("auto source proxy is ", PROXIFY);
 
@@ -30,8 +29,8 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
       prefix + "/movies/{page}",
       prefix + "/movies/info/{slug}",
       prefix + "/series/info/{slug}",
-      prefix + "/episode/stream/{slug}"
-    ]
+      prefix + "/episode/stream/{slug}",
+    ],
   }))
 
   .get("/home", async () => {
@@ -42,10 +41,7 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
     "/search/:query/:page?",
     async ({ params }) => {
       return {
-        results: await AnimeSalt.search(
-          params.query,
-          Number(params.page) || 1
-        ),
+        results: await AnimeSalt.search(params.query, Number(params.page) || 1),
       };
     },
     {
@@ -53,14 +49,14 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
         query: t.String(),
         page: t.Optional(t.Number({ default: 1 })),
       }),
-    }
+    },
   )
 
   .get("/category/*", async ({ params, query }) => {
     const path = params["*"] || "";
     const segments = path.split("/").filter(Boolean);
 
-    let type = "";
+    let type: string;
     let page = 1;
 
     const last = segments[segments.length - 1];
@@ -88,7 +84,7 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
       params: t.Object({
         page: t.Optional(t.Number({ default: 1 })),
       }),
-    }
+    },
   )
 
   .get("/movies/info/:slug", async ({ params }) => {
@@ -107,9 +103,7 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
     const stream = new ReadableStream({
       async start(controller) {
         for await (const chunk of AnimeSalt.streams(params.slug)) {
-          controller.enqueue(
-            new TextEncoder().encode(JSON.stringify(chunk) + "\n")
-          );
+          controller.enqueue(new TextEncoder().encode(JSON.stringify(chunk) + "\n"));
         }
         controller.close();
       },
@@ -164,8 +158,8 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
           .join("\n");
 
         return new Response(proxified);
-      } catch (err) {
-        Logger.error(err);
+      } catch (_err) {
+        Logger.error(_err);
         return new Response("Proxy error", { status: 500 });
       }
     },
@@ -174,7 +168,7 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
         url: t.String(),
         headers: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   .get(
@@ -203,8 +197,8 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
             "Content-Type": "video/MP2T",
           },
         });
-      } catch (err) {
-        Logger.error(err);
+      } catch (_err) {
+        Logger.error(_err);
         return new Response("Proxy error", { status: 500 });
       }
     },
@@ -213,5 +207,5 @@ export const animesaltRoutes = new Elysia({ prefix: "/animesalt" })
         url: t.String(),
         headers: t.Optional(t.String()),
       }),
-    }
+    },
   );

@@ -7,7 +7,7 @@ function proxyAtsuImage(imagePath: string, baseApiUrl: string): string {
   if (!imagePath) return "";
   const root = baseApiUrl.replace(/\/$/, "");
   const normalizedPath = imagePath.replace(/^\//, "");
-  
+
   if (normalizedPath.startsWith("static/")) {
     return `${root}/image/atsu.moe/${normalizedPath}`;
   }
@@ -22,10 +22,11 @@ export class AtsuParser {
       baseURL: BASE_URL,
       timeout: 15_000,
       headers: {
-        "Accept": "application/json",
+        Accept: "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-        "Referer": `${BASE_URL}/`,
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+        Referer: `${BASE_URL}/`,
       },
     });
   }
@@ -46,7 +47,7 @@ export class AtsuParser {
   }
 
   /**
-   * Internal helper to poll an endpoint. Atsu frequently returns empty items 
+   * Internal helper to poll an endpoint. Atsu frequently returns empty items
    * initially while it fetches data in the background.
    */
   private async pollApi(url: string, maxAttempts: number, delayMs: number): Promise<any> {
@@ -55,18 +56,18 @@ export class AtsuParser {
       try {
         const { data } = await this.http.get(url);
         lastData = data;
-        
+
         // If we got valid items, break out of the loop early and return them!
         if (data && Array.isArray(data.items) && data.items.length > 0) {
           return data;
         }
-      } catch (err) {
+      } catch (_err) {
         // Ignore network errors during polling, we will just try again
       }
-      
+
       // Wait for delayMs before the next attempt (don't wait after the last attempt)
       if (i < maxAttempts - 1) {
-        await new Promise(resolve => setTimeout(resolve, delayMs));
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
     return lastData;
@@ -77,7 +78,7 @@ export class AtsuParser {
       const url = isAdult ? `${API_HOME}?adult=1` : API_HOME;
       const { data } = await this.http.get(url);
       const result: Record<string, any> = {};
-      
+
       data.homePage.sections.forEach((section: any) => {
         if (section.layout === "carousel") {
           result[section.key] = {
@@ -92,17 +93,23 @@ export class AtsuParser {
     }
   }
 
-  async fetchInfiniteSection(section: string, page: number, queryParams: Record<string, string>, baseApiUrl: string, isAdult: boolean = false): Promise<any> {
+  async fetchInfiniteSection(
+    section: string,
+    page: number,
+    queryParams: Record<string, string>,
+    baseApiUrl: string,
+    isAdult: boolean = false,
+  ): Promise<any> {
     try {
       const params = new URLSearchParams({ page: page.toString(), ...queryParams });
       if (isAdult) params.set("adult", "1");
 
       const url = `/api/infinite/${section}?${params.toString()}`;
       const { data } = await this.http.get(url);
-      
+
       return {
         page,
-        items: (data.items || []).map((item: any) => this.transformItem(item, baseApiUrl))
+        items: (data.items || []).map((item: any) => this.transformItem(item, baseApiUrl)),
       };
     } catch (err: any) {
       return { error: err.message };
@@ -119,9 +126,11 @@ export class AtsuParser {
 
       if (manga.hasMoreChapters) {
         try {
-          const allChapsRes = await this.http.get(`/api/manga/allChapters?mangaId=${encodeURIComponent(id)}`);
+          const allChapsRes = await this.http.get(
+            `/api/manga/allChapters?mangaId=${encodeURIComponent(id)}`,
+          );
           if (allChapsRes.data?.chapters) chapters = allChapsRes.data.chapters;
-        } catch (e) {
+        } catch (_e) {
           console.error("Failed to fetch all chapters, falling back to partial list.");
         }
       }
@@ -144,12 +153,12 @@ export class AtsuParser {
         status: manga.status || "Unknown",
         genres: (manga.genres || []).map((g: any) => ({
           genre: g.name,
-          slug: g.id
+          slug: g.id,
         })),
         authors: (manga.authors || []).map((a: any) => ({
           author: a.name,
           slug: a.slug || a.id,
-          role: a.type || "Author"
+          role: a.type || "Author",
         })),
         scanlators: manga.scanlators || [],
         poster: proxyAtsuImage(manga.poster?.image || manga.poster?.id, baseApiUrl),
@@ -166,9 +175,9 @@ export class AtsuParser {
             pages: ch.pageCount,
             createdAt: ch.createdAt,
             scanId: scanId,
-            scanlator: scanId ? (scanlatorMap[scanId] || "Unknown") : "Unknown"
+            scanlator: scanId ? scanlatorMap[scanId] || "Unknown" : "Unknown",
           };
-        })
+        }),
       };
     } catch (err: any) {
       return { error: err.message };
@@ -189,8 +198,8 @@ export class AtsuParser {
           title: ch.title || `Chapter ${ch.number}`,
           number: ch.number,
           pages: ch.pageCount,
-          scanId: ch.scanId
-        }))
+          scanId: ch.scanId,
+        })),
       };
     } catch (err: any) {
       return { error: err.message };
@@ -199,17 +208,19 @@ export class AtsuParser {
 
   async fetchChapterPages(mangaId: string, chapterId: string, baseApiUrl: string): Promise<any> {
     try {
-      const { data } = await this.http.get(`/api/read/chapter?mangaId=${encodeURIComponent(mangaId)}&chapterId=${encodeURIComponent(chapterId)}`);
+      const { data } = await this.http.get(
+        `/api/read/chapter?mangaId=${encodeURIComponent(mangaId)}&chapterId=${encodeURIComponent(chapterId)}`,
+      );
       if (!data || !data.readChapter) return { error: "Chapter not found" };
-      
+
       const ch = data.readChapter;
       return {
         id: ch.id,
         title: ch.title,
         pages: (ch.pages || []).map((img: any) => ({
           img: proxyAtsuImage(img.image, baseApiUrl),
-          page: img.number
-        }))
+          page: img.number,
+        })),
       };
     } catch (err: any) {
       return { error: err.message };
@@ -222,27 +233,32 @@ export class AtsuParser {
       return {
         genres: (data.genres || []).map((g: any) => ({ name: g.name, slug: g.id })),
         types: (data.types || []).map((t: any) => ({ name: t.name, slug: t.id })),
-        statuses: (data.statuses || []).map((s: any) => ({ name: s.name, slug: s.id }))
+        statuses: (data.statuses || []).map((s: any) => ({ name: s.name, slug: s.id })),
       };
     } catch (err: any) {
       return { error: err.message };
     }
   }
 
-  async fetchFilteredView(params: {
-    genres?: string;
-    authors?: string;
-    types?: string;
-    statuses?: string;
-    page?: number;
-    adult?: boolean;
-  }, baseApiUrl: string): Promise<any> {
+  async fetchFilteredView(
+    params: {
+      genres?: string;
+      authors?: string;
+      types?: string;
+      statuses?: string;
+      page?: number;
+      adult?: boolean;
+    },
+    baseApiUrl: string,
+  ): Promise<any> {
     try {
       const payload: Record<string, any> = {
         filter: {
-          genres: params.genres ? params.genres.split(",").map(x => x.trim()) : [],
-          types: params.types ? params.types.split(",").map(x => x.trim()) : ["Manga", "Manwha", "Manhua", "OEL"],
-          statuses: params.statuses ? params.statuses.split(",").map(x => x.trim()) : []
+          genres: params.genres ? params.genres.split(",").map((x) => x.trim()) : [],
+          types: params.types
+            ? params.types.split(",").map((x) => x.trim())
+            : ["Manga", "Manwha", "Manhua", "OEL"],
+          statuses: params.statuses ? params.statuses.split(",").map((x) => x.trim()) : [],
         },
         page: params.page || 0,
       };
@@ -253,25 +269,30 @@ export class AtsuParser {
 
       const url = params.adult ? "/api/explore/filteredView?adult=1" : "/api/explore/filteredView";
       const { data } = await this.http.post(url, payload);
-      
+
       return {
         page: params.page || 0,
-        items: (data.items || []).map((item: any) => this.transformItem(item, baseApiUrl))
+        items: (data.items || []).map((item: any) => this.transformItem(item, baseApiUrl)),
       };
     } catch (err: any) {
       const errorMessage = err.response?.data ? JSON.stringify(err.response.data) : err.message;
-      return { error: `[Atsu API ${err.response?.status || 'Error'}] ${errorMessage}` };
+      return { error: `[Atsu API ${err.response?.status || "Error"}] ${errorMessage}` };
     }
   }
 
-  async fetchAuthor(slug: string, page: number, type: string | undefined, baseApiUrl: string): Promise<any> {
+  async fetchAuthor(
+    slug: string,
+    page: number,
+    type: string | undefined,
+    baseApiUrl: string,
+  ): Promise<any> {
     try {
       let currentType = type || "Author";
       let url = `/api/browse/author?authorSlug=${encodeURIComponent(slug)}&type=${currentType}&page=${page}`;
-      
+
       // Poll up to 4 times (1.5 seconds apart) ~ max 6 seconds total
       let data = await this.pollApi(url, 4, 1500);
-      
+
       // Smart Fallback: If still empty and no explicit role was requested, try searching them as an Artist
       if ((!data || !data.items || data.items.length === 0) && !type) {
         currentType = "Artist";
@@ -286,7 +307,7 @@ export class AtsuParser {
         author: data.author?.name || slug,
         role: currentType,
         page,
-        items: data.items.map((item: any) => this.transformItem(item, baseApiUrl))
+        items: data.items.map((item: any) => this.transformItem(item, baseApiUrl)),
       };
     } catch (err: any) {
       return { error: err.message };
@@ -298,8 +319,9 @@ export class AtsuParser {
       const resp = await this.http.get(`https://${path}`, {
         responseType: "arraybuffer",
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-          "Referer": `${BASE_URL}/`,
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+          Referer: `${BASE_URL}/`,
         },
       });
       if (resp.status === 200) {

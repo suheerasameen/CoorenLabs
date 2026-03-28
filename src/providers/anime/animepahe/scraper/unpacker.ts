@@ -8,10 +8,9 @@ interface Dictionary {
 // helper that can read numbers in any alphabet you can imagine (radix > 36)
 class UnBase {
   private readonly radix: number;
-  private readonly alpha62 =
-    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private readonly alpha62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private readonly alpha95 =
-    ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
   private alphabet = "";
   private dictionary: Dictionary = {};
 
@@ -58,16 +57,13 @@ export class JSPacker {
 
   // true if this code is wrapped in the classic eval(function(p,a,c,k,e,...)
   detect(): boolean {
-    return /eval\(function\(p,a,c,k,e,(?:r|d)/.test(
-      this.packedJS.replace(/ /g, ""),
-    );
+    return /eval\(function\(p,a,c,k,e,(?:r|d)/.test(this.packedJS.replace(/ /g, ""));
   }
 
   // actually perform the unpacking trick, or bail out with null
   unpack(): string | null {
     try {
-      const exp =
-        /\}\s*\('(.*)',\s*(.*?),\s*(\d+),\s*'(.*?)'\.split\('\|'\)/s;
+      const exp = /\}\s*\('(.*)',\s*(.*?),\s*(\d+),\s*'(.*?)'\.split\('\|'\)/s;
       const matches = exp.exec(this.packedJS);
       if (!matches || matches.length !== 5) return null;
 

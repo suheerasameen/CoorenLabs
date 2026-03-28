@@ -25,7 +25,12 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'tests/**'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'tests/**',
+      'src/providers/anime/toonstream/jwplayer.js',
+    ],
   },
   eslintConfigPrettier,
 );

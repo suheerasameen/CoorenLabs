@@ -22,7 +22,7 @@ const BASE_API_CHAPTER = `${BASE_URL}/api/v1/chapter/chapter-listing-by-title-id
 const BASE_API_PERSON = `${BASE_URL}/api/v1/person/search/`;
 
 const DEFAULT_HEADERS = {
-  "accept": "*/*",
+  accept: "*/*",
   "accept-language": "en-US,en;q=0.9",
   "sec-ch-ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
   "sec-ch-ua-mobile": "?0",
@@ -30,7 +30,8 @@ const DEFAULT_HEADERS = {
   "sec-fetch-dest": "empty",
   "sec-fetch-mode": "cors",
   "sec-fetch-site": "same-origin",
-  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+  "user-agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
 };
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -55,14 +56,25 @@ function removeEmpty<T>(data: T): T {
   if (Array.isArray(data)) {
     const cleaned = (data as unknown[])
       .map((v) => removeEmpty(v))
-      .filter((v) => v !== null && v !== "" && !(Array.isArray(v) && v.length === 0) && !(typeof v === "object" && v !== null && Object.keys(v).length === 0));
+      .filter(
+        (v) =>
+          v !== null &&
+          v !== "" &&
+          !(Array.isArray(v) && v.length === 0) &&
+          !(typeof v === "object" && v !== null && Object.keys(v).length === 0),
+      );
     return cleaned as unknown as T;
   }
   if (typeof data === "object" && data !== null) {
     const result: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
       const cleaned = removeEmpty(v);
-      if (cleaned !== null && cleaned !== "" && !(Array.isArray(cleaned) && cleaned.length === 0) && !(typeof cleaned === "object" && cleaned !== null && Object.keys(cleaned).length === 0)) {
+      if (
+        cleaned !== null &&
+        cleaned !== "" &&
+        !(Array.isArray(cleaned) && cleaned.length === 0) &&
+        !(typeof cleaned === "object" && cleaned !== null && Object.keys(cleaned).length === 0)
+      ) {
         result[k] = cleaned;
       }
     }
@@ -184,7 +196,7 @@ export class MangaballParser {
   private async postApi(
     url: string,
     body: string,
-    referer?: string
+    referer?: string,
   ): Promise<Record<string, unknown>> {
     const csrf = await this.getCsrfToken();
     if (!csrf) return { error: "Failed to get CSRF token" };
@@ -198,7 +210,12 @@ export class MangaballParser {
       Referer: referer ?? `${BASE_URL}/`,
     };
 
-    const cookieStr = ["show18PlusContent=true", ...Object.entries(this.cookies).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)].join("; ");
+    const cookieStr = [
+      "show18PlusContent=true",
+      ...Object.entries(this.cookies).map(
+        ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+      ),
+    ].join("; ");
 
     try {
       const resp = await this.http.post(url, body, {
@@ -212,7 +229,12 @@ export class MangaballParser {
         const csrf2 = await this.getCsrfToken();
         if (csrf2) {
           try {
-            const cookieStr2 = ["show18PlusContent=true", ...Object.entries(this.cookies).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)].join("; ");
+            const cookieStr2 = [
+              "show18PlusContent=true",
+              ...Object.entries(this.cookies).map(
+                ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+              ),
+            ].join("; ");
             const resp2 = await this.http.post(url, body, {
               headers: { ...headers, "X-CSRF-TOKEN": csrf2, Cookie: cookieStr2 },
             });
@@ -230,7 +252,7 @@ export class MangaballParser {
   private async postJsonApi(
     url: string,
     payload: Record<string, unknown>,
-    referer?: string
+    referer?: string,
   ): Promise<Record<string, unknown>> {
     const csrf = await this.getCsrfToken();
     if (!csrf) return { error: "Failed to get CSRF token" };
@@ -244,11 +266,16 @@ export class MangaballParser {
       Referer: referer ?? `${BASE_URL}/`,
     };
 
-    const cookieStr = ["show18PlusContent=true", ...Object.entries(this.cookies).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)].join("; ");
+    const cookieStr = [
+      "show18PlusContent=true",
+      ...Object.entries(this.cookies).map(
+        ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+      ),
+    ].join("; ");
 
     try {
       const resp = await this.http.post(url, payload, {
-        headers: { ...headers, Cookie: cookieStr }
+        headers: { ...headers, Cookie: cookieStr },
       });
       return resp.data as Record<string, unknown>;
     } catch (err: unknown) {
@@ -258,7 +285,12 @@ export class MangaballParser {
         const csrf2 = await this.getCsrfToken();
         if (csrf2) {
           try {
-            const cookieStr2 = ["show18PlusContent=true", ...Object.entries(this.cookies).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)].join("; ");
+            const cookieStr2 = [
+              "show18PlusContent=true",
+              ...Object.entries(this.cookies).map(
+                ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+              ),
+            ].join("; ");
             const resp2 = await this.http.post(url, payload, {
               headers: { ...headers, "X-CSRF-TOKEN": csrf2, Cookie: cookieStr2 },
             });
@@ -275,7 +307,10 @@ export class MangaballParser {
 
   // ── transform helpers ───────────────────────────────────────────────────
 
-  private transformTitleItem(item: Record<string, unknown>, baseApiUrl: string): Record<string, unknown> {
+  private transformTitleItem(
+    item: Record<string, unknown>,
+    baseApiUrl: string,
+  ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 
     if ("_id" in item) result._id = item._id;
@@ -335,7 +370,10 @@ export class MangaballParser {
     return removeEmpty(result);
   }
 
-  private transformTitleList(raw: Record<string, unknown>, baseApiUrl: string): Record<string, unknown> {
+  private transformTitleList(
+    raw: Record<string, unknown>,
+    baseApiUrl: string,
+  ): Record<string, unknown> {
     const items = Array.isArray(raw.data) ? (raw.data as Record<string, unknown>[]) : [];
     const transformed = items.map((item) => this.transformTitleItem(item, baseApiUrl));
     const result: Record<string, unknown> = { data: transformed };
@@ -377,38 +415,48 @@ export class MangaballParser {
       groups[g].push(tag);
     }
 
-    const grandTotal = allTags.reduce((sum, t) => sum + (((t.stats as Record<string, number>) ?? {}).title ?? 0), 0);
+    const grandTotal = allTags.reduce(
+      (sum, t) => sum + (((t.stats as Record<string, number>) ?? {}).title ?? 0),
+      0,
+    );
     const totalTagsCount = allTags.length;
 
     const makeInfo = (groupName: string, fieldKey: string): Record<string, unknown> => {
       const groupItems = groups[groupName] ?? [];
       const totalT = groupItems.length;
-      const totalTitle = groupItems.reduce((s, t) => s + (((t.stats as Record<string, number>) ?? {}).title ?? 0), 0);
+      const totalTitle = groupItems.reduce(
+        (s, t) => s + (((t.stats as Record<string, number>) ?? {}).title ?? 0),
+        0,
+      );
       const totalAvg = grandTotal > 0 ? `${((totalTitle / grandTotal) * 100).toFixed(1)}%` : "0%";
       const sorted = [...groupItems].sort(
-        (a, b) => (((b.stats as Record<string, number>) ?? {}).title ?? 0) - (((a.stats as Record<string, number>) ?? {}).title ?? 0)
+        (a, b) =>
+          (((b.stats as Record<string, number>) ?? {}).title ?? 0) -
+          (((a.stats as Record<string, number>) ?? {}).title ?? 0),
       );
       const tagList = sorted.map((t) => {
-        const count = (((t.stats as Record<string, number>) ?? {}).title ?? 0);
+        const count = ((t.stats as Record<string, number>) ?? {}).title ?? 0;
         const avg = totalTitle > 0 ? `${((count / totalTitle) * 100).toFixed(1)}%` : "0%";
         return { [fieldKey]: t.name ?? "", count: formatNumber(count), avg };
       });
-      return { total_tags: String(totalT), total_title: formatNumber(totalTitle), total_avg: totalAvg, tags: tagList };
+      return {
+        total_tags: String(totalT),
+        total_title: formatNumber(totalTitle),
+        total_avg: totalAvg,
+        tags: tagList,
+      };
     };
 
     const genreTags = groups.genre ?? [];
-    const topGenreTag = genreTags.reduce<typeof allTags[number] | null>(
-      (best, t) => {
-        const c = (((t.stats as Record<string, number>) ?? {}).title ?? 0);
-        const bc = best ? (((best.stats as Record<string, number>) ?? {}).title ?? 0) : -1;
-        return c > bc ? t : best;
-      },
-      null
-    );
+    const topGenreTag = genreTags.reduce<(typeof allTags)[number] | null>((best, t) => {
+      const c = ((t.stats as Record<string, number>) ?? {}).title ?? 0;
+      const bc = best ? (((best.stats as Record<string, number>) ?? {}).title ?? 0) : -1;
+      return c > bc ? t : best;
+    }, null);
 
     const originMap: Record<string, number> = {};
     for (const t of groups.origin ?? []) {
-      originMap[(t.slug as string) ?? ""] = (((t.stats as Record<string, number>) ?? {}).title ?? 0);
+      originMap[(t.slug as string) ?? ""] = ((t.stats as Record<string, number>) ?? {}).title ?? 0;
     }
 
     return removeEmpty({
@@ -431,7 +479,10 @@ export class MangaballParser {
     });
   }
 
-  private transformChapters(chapters: Record<string, unknown>, baseApiUrl: string): Record<string, unknown> {
+  private transformChapters(
+    chapters: Record<string, unknown>,
+    baseApiUrl: string,
+  ): Record<string, unknown> {
     const allChapters = Array.isArray(chapters.ALL_CHAPTERS)
       ? (chapters.ALL_CHAPTERS as Record<string, unknown>[])
       : [];
@@ -516,9 +567,10 @@ export class MangaballParser {
       `filters%5Bperson%5D=${enc(person)}`,
       `filters%5BoriginalLanguages%5D=${enc(originalLang)}`,
       `filters%5BpublicationYear%5D=`,
-      `filters%5BpublicationStatus%5D=${enc(publicationStatus)}`
+      `filters%5BpublicationStatus%5D=${enc(publicationStatus)}`,
     );
-    for (const lang of translatedLang) parts.push(`filters%5BtranslatedLanguage%5D%5B%5D=${enc(lang)}`);
+    for (const lang of translatedLang)
+      parts.push(`filters%5BtranslatedLanguage%5D%5B%5D=${enc(lang)}`);
     parts.push(`filters%5BuserSettingsEnabled%5D=false`);
     return parts.join("&");
   }
@@ -526,7 +578,10 @@ export class MangaballParser {
   // ── public parse methods ────────────────────────────────────────────────
 
   async parseRecommendation(baseApiUrl = "", limit = 12): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getRecommend&search_limit=${limit}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getRecommend&search_limit=${limit}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
@@ -538,19 +593,28 @@ export class MangaballParser {
   }
 
   async parseLatest(baseApiUrl = "", page = 1, limit = 24): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getLatestTable&search_limit=${limit}&page=${page}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getLatestTable&search_limit=${limit}&page=${page}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
   async parseForYou(time = "day", baseApiUrl = "", limit = 12): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getRecentRead&search_limit=${limit}&search_time=${time}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getRecentRead&search_limit=${limit}&search_time=${time}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
   async parseRecent(time = "day", baseApiUrl = "", limit = 12): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getRecentChapterRead&search_limit=${limit}&search_time=${time}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getRecentChapterRead&search_limit=${limit}&search_time=${time}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
@@ -562,37 +626,59 @@ export class MangaballParser {
   }
 
   async parseOrigin(origin = "all", baseApiUrl = ""): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getByOrigin&search_limit=12&search_origin=${origin}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getByOrigin&search_limit=12&search_origin=${origin}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
   async parseAdded(page = 1, baseApiUrl = "", limit = 24): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getRecentlyAdded&page=${page}&search_limit=${limit}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getRecentlyAdded&page=${page}&search_limit=${limit}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
   async parseNewChap(page = 1, baseApiUrl = "", limit = 24): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getRecentlyUpdatedChapter&page=${page}&search_limit=${limit}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getRecentlyUpdatedChapter&page=${page}&search_limit=${limit}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
   async parseTagsById(idTags: string, page = 1, baseApiUrl = ""): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getTitlesByTagId-${idTags}&page=${page}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getTitlesByTagId-${idTags}&page=${page}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
-  async parseKeyword(idKeyword: string, page = 1, baseApiUrl = ""): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getTitlesByKeywordId-${idKeyword}&page=${page}`);
+  async parseKeyword(
+    idKeyword: string,
+    page = 1,
+    baseApiUrl = "",
+  ): Promise<Record<string, unknown>> {
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getTitlesByKeywordId-${idKeyword}&page=${page}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
 
   async parsePerson(idPerson: string, page = 1, baseApiUrl = ""): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TITLE, `search_type=getTitlesByPersonId-${idPerson}&page=${page}`);
+    const raw = await this.postApi(
+      BASE_API_TITLE,
+      `search_type=getTitlesByPersonId-${idPerson}&page=${page}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
@@ -609,7 +695,12 @@ export class MangaballParser {
     };
   }
 
-  async parseSearch(query: string, page = 1, baseApiUrl = "", limit = 24): Promise<Record<string, unknown>> {
+  async parseSearch(
+    query: string,
+    page = 1,
+    baseApiUrl = "",
+    limit = 24,
+  ): Promise<Record<string, unknown>> {
     const enc = encodeURIComponent;
     const body =
       `search_input=${enc(query)}&` +
@@ -625,7 +716,11 @@ export class MangaballParser {
       `filters%5BpublicationYear%5D=&` +
       `filters%5BpublicationStatus%5D=any&` +
       `filters%5BuserSettingsEnabled%5D=false`;
-    const raw = await this.postApi(BASE_API_SEARCH, body, `${BASE_URL}/search-advanced?search_input=${enc(query)}`);
+    const raw = await this.postApi(
+      BASE_API_SEARCH,
+      body,
+      `${BASE_URL}/search-advanced?search_input=${enc(query)}`,
+    );
     if ("error" in raw) return raw;
     return this.transformTitleList(raw, baseApiUrl);
   }
@@ -660,7 +755,13 @@ export class MangaballParser {
     originalLang?: string;
     publicationStatus?: string;
   }): Promise<Record<string, unknown>> {
-    const { baseApiUrl = "", page = 1, limit = 24, originalLang = "any", publicationStatus = "any" } = opts;
+    const {
+      baseApiUrl = "",
+      page = 1,
+      limit = 24,
+      originalLang = "any",
+      publicationStatus = "any",
+    } = opts;
     const body = this.buildAdvancedPayload({ page, limit, originalLang, publicationStatus });
     const raw = await this.postApi(BASE_API_SEARCH, body, `${BASE_URL}/search-advanced`);
     if ("error" in raw) return raw;
@@ -668,7 +769,11 @@ export class MangaballParser {
   }
 
   async parseTags(): Promise<Record<string, unknown>> {
-    const raw = await this.postApi(BASE_API_TAG, "search_type=getTagFilter", `${BASE_URL}/search-advanced`);
+    const raw = await this.postApi(
+      BASE_API_TAG,
+      "search_type=getTagFilter",
+      `${BASE_URL}/search-advanced`,
+    );
     if ("error" in raw) return raw;
     return this.transformTags(raw);
   }
@@ -677,7 +782,12 @@ export class MangaballParser {
     const csrf = await this.getCsrfToken();
     if (!csrf) return { error: "Failed to get CSRF token" };
     try {
-      const cookieStr = ["show18PlusContent=true", ...Object.entries(this.cookies).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)].join("; ");
+      const cookieStr = [
+        "show18PlusContent=true",
+        ...Object.entries(this.cookies).map(
+          ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+        ),
+      ].join("; ");
       const resp = await this.http.post(BASE_API_TAG_STATS, "", {
         headers: {
           "Content-Length": "0",
@@ -692,7 +802,7 @@ export class MangaballParser {
       const raw = resp.data as Record<string, unknown>;
       if ("error" in raw) return raw;
       return this.transformTagsDetail(raw);
-    } catch (err) {
+    } catch (_err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { error: msg };
     }
@@ -831,7 +941,9 @@ export class MangaballParser {
         if (match) data[field] = match[1];
       }
 
-      const imagesMatch = scriptText.match(/const\s+chapterImages\s*=\s*JSON\.parse\(`(\[.*?\])`\)/s);
+      const imagesMatch = scriptText.match(
+        /const\s+chapterImages\s*=\s*JSON\.parse\(`(\[.*?\])`\)/s,
+      );
       if (imagesMatch) {
         try {
           data.images = JSON.parse(imagesMatch[1]) as string[];
@@ -844,7 +956,9 @@ export class MangaballParser {
     });
 
     if (baseApiUrl && Array.isArray(data.images) && data.images.length > 0) {
-      data.images = (data.images as string[]).filter(Boolean).map((img) => proxyImage(img, baseApiUrl));
+      data.images = (data.images as string[])
+        .filter(Boolean)
+        .map((img) => proxyImage(img, baseApiUrl));
     }
 
     return removeEmpty(data);
@@ -854,7 +968,19 @@ export class MangaballParser {
 
   async proxyImage(path: string): Promise<{ content: Buffer; contentType: string } | null> {
     const hostnameRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]*\.)+[a-zA-Z]{2,}$/;
-    const imageExts = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg", "avif", "bmp", "ico", "tif", "tiff"]);
+    const imageExts = new Set([
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "svg",
+      "avif",
+      "bmp",
+      "ico",
+      "tif",
+      "tiff",
+    ]);
 
     const looksLikeHostname = (s: string): boolean => {
       if (!hostnameRe.test(s)) return false;
@@ -878,8 +1004,7 @@ export class MangaballParser {
             responseType: "arraybuffer",
           });
           if (resp.status === 200) {
-            const contentType =
-              (resp.headers["content-type"] as string) || "image/jpeg";
+            const contentType = (resp.headers["content-type"] as string) || "image/jpeg";
             return { content: Buffer.from(resp.data as ArrayBuffer), contentType };
           }
         } catch {
@@ -897,8 +1022,7 @@ export class MangaballParser {
           responseType: "arraybuffer",
         });
         if (resp.status === 200) {
-          const contentType =
-            (resp.headers["content-type"] as string) || "image/jpeg";
+          const contentType = (resp.headers["content-type"] as string) || "image/jpeg";
           return { content: Buffer.from(resp.data as ArrayBuffer), contentType };
         }
       } catch {
